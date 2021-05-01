@@ -4,12 +4,12 @@ import numpy as np
 from collections import Counter, defaultdict
 from tqdm import tqdm
 
-PATH = '/home/qzhb/dorren/VQA_Experiment/VQA_Experiment_v2/data'
+PATH = '/home/qzhb/dorren/VQA_Experiment/data'
 DATASET = 'TDIUC'
 annotations = dict()
 
 for split in ['train', 'val']:
-    with open(f'{PATH}/Annotations/{split}_{DATASET}_5k12c_annotations.json')as f:
+    with open(f'{PATH}/{DATASET}/Annotations/{split}_{DATASET}_5k12c_annotations.json')as f:
         annotations[split] = json.load(f)['annotations']
 
 meta = defaultdict(list)

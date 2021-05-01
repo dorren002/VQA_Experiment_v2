@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse, os
 import h5py
 import numpy as np
@@ -8,8 +9,8 @@ import torchvision
 import json
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--path', type=str, default='/media/qzhb/DATA1/yi/dorren/tdiuc/')
-parser.add_argument('--dataset', default='tdiuc', type=str, choices=['tdiuc', 'VQAv2'])
+parser.add_argument('--path', type=str, default='/media/qzhb/DATA1/yi/dorren/')
+parser.add_argument('--dataset', default='TDIUC', type=str, choices=['TDIUC', 'VQAv2'])
 parser.add_argument('--max_images', default=None, type=int)
 
 parser.add_argument('--image_height', default=224, type=int)
@@ -60,10 +61,9 @@ def path2iid(path):
 
 def main(args):
     args.output_h5_file = args.path + "/all_{DATASET}_features.h5"
-    p1 = f'{args.path}/Images/train2014'
+    p1 = f"{args.path}/{args.dataset}/Images/train2014"
     input_paths = [os.path.join(p1, a) for a in os.listdir(p1)]
-
-    p1 = f'{args.path}/Images/val2014'
+    p1 = f'{args.path}/{args.dataset}/Images/val2014'
     input_paths.extend([os.path.join(p1, a) for a in os.listdir(p1)])
 
     model = build_model(args)
