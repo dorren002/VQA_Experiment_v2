@@ -2,16 +2,15 @@
 
 lr=2e-3
 CONFIG=TDIUC_streaming
-export PYTHONPATH=/home/qzhb/dorren/CL4VQA/REMIND
+export PYTHONPATH=/home/qzhb/dorren/VQA_Experement/
 
 DATA_ORDER=iid
 expt=${CONFIG}_${DATA_ORDER}_${lr}
-QTYPE=0 # or type name
 MODE=limited_buffer
 BUFFERSIZE=10000
 
 
-CUDA_VISIBLE_DEVICES=0 nohup python -u vqa_trainer.py \
+CUDA_VISIBLE_DEVICES=0 nohup python -u main.py \
 --config_name ${CONFIG} \
 --expt_name ${expt} \
 --stream \

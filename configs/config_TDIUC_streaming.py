@@ -8,7 +8,7 @@ import sys
 # weights so that it is easy to reproduce later.
 
 # Data
-dataset = 'tdiuc'
+dataset = 'TDIUC'
 data_path = f'/media/qzhb/DATA1/yi/dorren/{dataset}/Images/'
 img_feat = 'resnetpq_qtype'  # updn, resnet, updnmkii, resnetmkii
 mkii = False  # If you want to also load codebook indices
