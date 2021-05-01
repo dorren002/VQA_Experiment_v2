@@ -1,11 +1,6 @@
-"""
-Written by Kushal, modified by Robik
-"""
-import vqa_models as vqa_models
 import torch
 from dictionary import Dictionary
 import sys
-from vqa_models import WordEmbedding
 
 # from s_mac import s_mac
 
@@ -13,17 +8,17 @@ from vqa_models import WordEmbedding
 # weights so that it is easy to reproduce later.
 
 # Data
-data_path = '/media/qzhb/DATA1/yi/dorren/'
 dataset = 'tdiuc'
+data_path = f'/media/qzhb/DATA1/yi/dorren/{dataset}/Images/'
 img_feat = 'resnetpq_qtype'  # updn, resnet, updnmkii, resnetmkii
 mkii = False  # If you want to also load codebook indices
 data_subset = 1.0
 d = Dictionary.load_from_file(f'/home/qzhb/dorren/CL4VQA/REMIND/VQA_Experiment/data/dictionary_{dataset}.pkl')
 
-map_path = f'{data_path}/map_tdiuc_resnet.json'
+map_path = f'{data_path}/map_{dataset}_features.json'
 
-train_file = f'{data_path}/train_1w_{dataset}.h5'
-val_file = f'{data_path}/val_1w_{dataset}.h5'
+train_file = f'{data_path}/train_{dataset}.h5'
+val_file = f'{data_path}/val_{dataset}.h5'
 
 train_batch_size = 512
 val_batch_size = 512

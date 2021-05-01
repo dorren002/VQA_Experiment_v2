@@ -1,23 +1,20 @@
-"""
-Written by Kushal, modified by Robik
-"""
-
 import json
 import h5py
 import numpy as np
 from collections import Counter, defaultdict
 from tqdm import tqdm
 
-PATH = '/home/qzhb/dorren/CL4VQA/TDIUC'
+PATH = '/home/qzhb/dorren/VQA_Experiment/VQA_Experiment_v2/data'
+DATASET = 'TDIUC'
 annotations = dict()
 
-for split in ['train','val']:
-    annotations[split] = json.load(
-        open(f'{PATH}/Annotations/{split}_annotations.json'))['annotations']
+for split in ['train', 'val']:
+    with open(f'{PATH}/Annotations/{split}_{DATASET}_5k12c_annotations.json')as f:
+        annotations[split] = json.load(f)['annotations']
 
-meta = defaultdict(list) #默认value为list
+meta = defaultdict(list)
 
-# train
+# train split
 for ann in annotations['train']:
     ten_ans = [a['answer'] for a in ann['answers']] * 10
     ans = ten_ans[0]
@@ -27,16 +24,18 @@ for ann in annotations['train']:
 
 lut = dict()
 
+# 答案由多至少排序，id从0递增  最多的：0
 for m in ['a', 'atype', 'qtype']:
     most_common = Counter(meta[m]).most_common()
-    # 由多至少排序，id从0递增  最多的：0
     lut[f'{m}2idx'] = {a[0]: idx for idx, a in enumerate(most_common)} 
 
-json.dump(lut, open(f'{PATH}/LUT_tdiuc.json', 'w')) # 排好序的答案
+# 排好序的答案
+json.dump(lut, open(f'{PATH}/{DATASET}/LUT_{DATASET}.json', 'w'))
+
 # %%
 dt = h5py.special_dtype(vlen=str)
-for split in ['train','val']:
-    qfeat_file = h5py.File(f'{PATH}/questions_{split}_tdiuc.h5', 'r')
+for split in ['train', 'val']:
+    qfeat_file = h5py.File(f'{PATH}/{DATASET}/questions_{DATASET}_{split}.h5', 'r')
 
     mem_feat = dict()
     for dset in qfeat_file.keys():
@@ -44,7 +43,8 @@ for split in ['train','val']:
     qids = mem_feat['qids'][:]
     qid2idx = {qid: idx for idx, qid in enumerate(qids)}
     num_instances = len(annotations[split])
-    h5file = h5py.File(f'{PATH}/{split}_tdiuc.h5', 'w')
+
+    h5file = h5py.File(f'{PATH}/{DATASET}/{split}_{DATASET}.h5', 'w')
     h5file.create_dataset('qfeat', (num_instances, 2048), dtype=np.float32)
     h5file.create_dataset('qid', (num_instances,), dtype=np.int64)
     h5file.create_dataset('iid', (num_instances,), dtype=np.int64)

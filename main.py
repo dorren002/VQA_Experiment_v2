@@ -393,13 +393,12 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
 
 
 def main():
+    dtset = config.dataset
     # 训练集路径
-    if args.remind_original_data:
-        config.train_path = f'{config.data_path}/all_tdiuc_origin_{args.data_order}.h5'
-    elif args.remind_compressed_features:
-        config.train_path = f'{config.data_path}/all_tdiuc_pq_{args.data_order}.h5'
+    if args.remind_compressed_features:
+        config.train_path = f'{config.data_path}/all_{dtset}_pq_{args.data_order}.h5'
     else:
-        config.train_path = f'{config.data_path}/all_tdiuc_feats'.h5
+        config.train_path = f'{config.data_path}/all_{dtset}_features'.h5
 
     print(args)
 
@@ -443,6 +442,10 @@ def main():
             config.only_first_k['train'] = i+1
 
         print("Building Dataloaders !")
+
+        data_type = 1
+        if args.remind_original_data:
+            data_type = 0
 
         train_data, val_data = build_dataloaders(config, data_type, mem_feat)
 

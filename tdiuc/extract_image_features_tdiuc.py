@@ -8,7 +8,8 @@ import torchvision
 import json
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--path', type=str, default='/home/qzhb/dorren/CL4VQA/TDIUC')
+parser.add_argument('--path', type=str, default='/media/qzhb/DATA1/yi/dorren/tdiuc/')
+parser.add_argument('--dataset', default='tdiuc', type=str, choices=['tdiuc', 'VQAv2'])
 parser.add_argument('--max_images', default=None, type=int)
 
 parser.add_argument('--image_height', default=224, type=int)
@@ -58,7 +59,7 @@ def path2iid(path):
 
 
 def main(args):
-    args.output_h5_file = args.path + "/all_tdiuc_resnet.h5"
+    args.output_h5_file = args.path + "/all_{DATASET}_features.h5"
     p1 = f'{args.path}/Images/train2014'
     input_paths = [os.path.join(p1, a) for a in os.listdir(p1)]
 
@@ -85,7 +86,7 @@ def main(args):
                     _, C, H, W = feats.shape
                     feat_dset = f.create_dataset('image_features', (N, H * W, C),
                                                  dtype=np.float32)
-                    img_dset = f.create_dataset('image', (N, args.image_height*args.image_width, 3),dtype=np.float32)
+                    img_dset = f.create_dataset('image', (N, 1, 3, args.image_width, args.image_height),dtype=np.float32)
                     iid_dset = f.create_dataset('iids', (N,),
                                                 dtype=np.int64)
 
@@ -112,14 +113,12 @@ def main(args):
 
         iid2idx = {str(iid): idx for idx, iid in enumerate(iid_list)}
         idx2iid = {idx: str(iid) for idx, iid in enumerate(iid_list)}
-        
-        print(iid2idx['172813'])
 
         lut = dict()
         lut['image_id_to_ix'] = iid2idx
         lut['image_ix_to_id'] = idx2iid
 
-        json.dump(lut, open(f'{args.path}/map_tdiuc_resnet.json', 'w'))
+        json.dump(lut, open(f'{args.path}/map_{args.dataset}_features.json', 'w'))
 
 
 if __name__ == '__main__':
