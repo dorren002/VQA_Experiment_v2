@@ -27,7 +27,14 @@ class ResNet(nn.Module):
         self.model = model
 
     def forward(self, image):
-        feat = self.model(image)
+        mean = np.array([0.485, 0.456, 0.406]).reshape(1, 3, 1, 1)
+        std = np.array([0.229, 0.224, 0.224]).reshape(1, 3, 1, 1)
+
+        image_batch = np.concatenate(image, 0).astype(np.float32)
+        image_batch = (image_batch / 255.0 - mean) / std
+        image_batch = torch.FloatTensor(image_batch).cuda()
+
+        feat = self.model(image_batch)
         feat = feat.data.cpu().clone().numpy()
         return feat
 

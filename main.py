@@ -313,7 +313,60 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
                     index += 1
                     continue
 
-                # Start streaming after first boundary point 遇到boundary训练剩下的
+                # Start streaming after first boundary point
+                rehearsal_data_iter = iter(rehearsal_data)
+
+                Qs, Im, Ql, Ai = Qs.unsqueeze(0), Im.unsqueeze(0), Ql.unsqueeze(0), Ai.unsqueeze(0)  # 当前的
+                if index > 0:
+                    Q_r, Qs_r, Im_r, Qid_r, Iid_r, Ai_r, Tai_r, Ql_r = next(rehearsal_data_iter)
+                    # print(Im_r.shape)
+                    Qs_merged, Im_merged, Ql_merged, Ai_merged = merge_data(Qs, Im, Ql, Ai, Qs_r, Im_r, Ql_r, Ai_r)
+                else:
+                    Qs_merged, Im_merged, Ql_merged, Ai_merged = Qs, Im, Ql, Ai
+
+                # print('here')
+                p = net(Qs_merged, Im_merged, Ql_merged)
+                loss = criterion(p, Ai_merged)
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                if iter_cnt in boundaries:
+                    print('\n\nBoundary {} reached, evaluating...'.format(iter_cnt))
+                    predict(eval_net, test_data, 'NA', config.expt_dir, config, iter_cnt)
+                    #    save(eval_net, optimizer, 'NA', config.expt_dir, suffix='boundary_{}'.format(iter_cnt))
+                    net.train()
+                index += 1
+            inline_print('Processed {0} of {1}'.format(iter_cnt, len(data) * data.batch_size))
+        elif args.remind_features:
+            net.train()
+            # 初始化索引
+            if iter_cnt == 0:
+                print('\nStreaming with rehearsal...')
+                print(' Network will evaluate at: {}'.format(boundaries))
+                rehearsal_ixs = []
+
+                rehearsal_data = build_rehearsal_dataloader_with_limited_buffer(data.dataset,
+                                                                                    rehearsal_ixs,
+                                                                                    config.num_rehearsal_samples,
+                                                                                    args.max_buffer_size,
+                                                                                    config.buffer_replacement_strategy)
+            for Q, Qs, Im, ImFeat, Qid, Iid, Ai, Tai, Ql in zip(qfeat, qseq, image, imfeat, qid, iid, aidx, ten_aidx, qlen):
+                iter_cnt += 1
+                Qs = Qs.cuda()
+                Ql = Ql.cuda()
+                Im = ImFeat.cuda()
+                Ai = Ai.long().cuda()  # 排序的answer id
+
+                # rehearsal_ixs.append(index)
+                # index是buffer里的id，Ai是排序的answerid
+                rehearsal_data.batch_sampler.update_buffer(index, int(Ai))
+
+                # Do not stream until we reach the first boundary point
+                if index < boundaries[0]:
+                    index += 1
+                    continue
+
+                # Start streaming after first boundary point
                 rehearsal_data_iter = iter(rehearsal_data)
 
                 Qs, Im, Ql, Ai = Qs.unsqueeze(0), Im.unsqueeze(0), Ql.unsqueeze(0), Ai.unsqueeze(0)  # 当前的
