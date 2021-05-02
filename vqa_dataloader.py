@@ -30,10 +30,7 @@ def dictoflists2listofdicts(dictoflists):
 def format_feats_data(h5file, config, num_classes, arrangement = 'random', data_subset = 1.0):
     mem_feat = dict()
     for dset in h5file.keys():
-        if config.use_lstm and dset == 'qfeat':
-            mem_feat[dset] = [0]*len(h5file['qid'])
-        else:
-            mem_feat = h5file[dset][:]
+        mem_feat[dset] = h5file[dset][:]
     mem_feat = dictoflists2listofdicts(mem_feat)
     mem_feat = mem_feat[:int(len(mem_feat)*data_subset)]
 
@@ -128,8 +125,9 @@ class VQADataset(Dataset):
         qseq[:qlen] = torch.from_numpy(np.array(qtokens[:l-1])).long()
 
         aidx = dp['aidx']
+        mfeat = dp['mfeat']
 
-        return qseq, image, dp['qid'], dp['iid'], aidx, dp['ten_aidx'], qlen
+        return qseq, image, dp['qid'], dp['iid'], aidx, dp['ten_aidx'], qlen, mfeat
 
 
 class VQAFeatsDataset(Dataset):
@@ -286,8 +284,8 @@ def build_original_dataloader_with_limited_buffer(dataset, rehearsal_ixs, num_re
     return loader
 
 
-def build_rehearsal_dataloader_with_limited_buffer(dataset, rehearsal_ixs, num_rehearsal_samples, max_buffer_size, buffer_replacement_strategy):
-    rehearsal_batch_sampler = FixedBufferRehearsalBatchSampler(max_buffer_size, num_rehearsal_samples, buffer_replacement_strategy)
+def build_rehearsal_dataloader_with_limited_buffer(dataset, rehearsal_ixs, num_rehearsal_samples, max_buffer_size, buffer_replacement_strategy,sampling_method):
+    rehearsal_batch_sampler = FixedBufferRehearsalBatchSampler(max_buffer_size, num_rehearsal_samples, buffer_replacement_strategy, sampling_method)
     loader = DataLoader(dataset, batch_sampler=rehearsal_batch_sampler)
     return loader
 

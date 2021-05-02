@@ -9,11 +9,11 @@ import sys
 
 # Data
 dataset = 'TDIUC'
-data_path = f'/media/qzhb/DATA1/yi/dorren/{dataset}/Images/'
+data_path = f'/home/qzhb/dorren/VQA_Experiment/data/{dataset}'
 img_feat = 'resnetpq_qtype'  # updn, resnet, updnmkii, resnetmkii
 mkii = False  # If you want to also load codebook indices
 data_subset = 1.0
-d = Dictionary.load_from_file(f'/home/qzhb/dorren/CL4VQA/REMIND/VQA_Experiment/data/dictionary_{dataset}.pkl')
+d = Dictionary.load_from_file(f'data/dictionary_{dataset}.pkl')
 
 map_path = f'{data_path}/map_{dataset}_features.json'
 
@@ -76,3 +76,4 @@ if not soft_targets:
     train_on = 'valid'
 num_rehearsal_samples = 50
 buffer_replacement_strategy = 'random'
+use_exponential_averaging = False

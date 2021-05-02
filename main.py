@@ -27,6 +27,7 @@ parser.add_argument('--remind_compressed_features', action='store_true')
 parser.add_argument('--data_order', type=str, choices=['iid','qtype'])
 parser.add_argument('--rehearsal_mode', type=str, choices=['default','limited_buffer'])
 parser.add_argument('--max_buffer_size', type=int, default=None)
+parser.add_argument('--sampling_method', type=str, default='random')
 parser.add_argument('--buffer_replacement_strategy', type=str, choices=['queue','random'], default='random')
 parser.add_argument('--lr', type=float, default=None)
 
@@ -44,7 +45,7 @@ def train_epoch(net, criterion, optimizer, data, epoch, net_running):
     net.train()
     total,total_loss = 0,0
     correct, correct_vqa = 0,0
-    for qfeat, qseq, image, imfeat, qid, iid, aidx, ten_aidx, qlen in data:
+    for qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
         if config.soft_targets:
             aidx = aidx.cuda()
         else:
@@ -98,7 +99,7 @@ def train_epoch(net, criterion, optimizer, data, epoch, net_running):
 
 
 def training_loop(config, net, train_data, val_data, optimizer, criterion, expt_name, net_running, start_epoch=0):
-    eval_net = net_running if config.use_exponentiao_averaging else net
+    eval_net = net_running if config.use_exponential_averaging else net
     for epoch in range(start_epoch, config.max_epochs):
         epoch = epoch + 1
         acc, vqa_acc = train_epoch(net, criterion, optimizer, train_data, epoch, net_running)
@@ -117,7 +118,7 @@ def predict(eval_net, data, epoch, expt_name , config, iter_cnt=None):
 
     correct, correct_vqa, total = 0, 0, 0
     results = {}
-    for qfeat, qseq,image, imfeat, qid, iid, aidx, ten_aidx, qlen in data:
+    for qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
         qlen = qlen.cuda()
         q = qseq.cuda()
 
@@ -246,18 +247,18 @@ def merge_data(Qs, Im, Ql, Ai, Qs_r, Im_r, Ql_r, Ai_r):
 
 
 def stream(net, data, test_data, optimizer, criterion, config, net_running):
-    eval_net = net_running if config.use_expoential_averaging else net
+    eval_net = net_running if config.use_exponential_averaging else net
     net.train()
     iter_cnt, index = 0,0
     boundaries = get_boundaries(data, config)
 
-    for qfeat, qseq, image, imfeat, qid, iid, aidx, ten_aidx, qlen in data:
+    for qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
         net.train()
         if args.stream:
             if iter_cnt == 0:
                 print('Training in streaming fashion...')
                 print(' Network will evaluate at: {}'.format(boundaries))
-            for Q, Qs, Im, Imfeat, Qid, Iid, Ai, Tai, Ql in zip(qfeat, qseq, image, imfeat, qid, iid, aidx, ten_aidx, qlen):
+            for Q, Qs, Imfeat, Qid, Iid, Ai, Tai, Ql in zip(qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen):
                 iter_cnt += 1
                 Qs = Qs.cuda().unsqueeze(0)
                 Ql = Ql.cuda().unsqueeze(0)
@@ -296,7 +297,8 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
                                                                                     rehearsal_ixs,
                                                                                     config.num_rehearsal_samples,
                                                                                     args.max_buffer_size,
-                                                                                    config.buffer_replacement_strategy)
+                                                                                    config.buffer_replacement_strategy,
+                                                                                    args.sampling_method)
             for Q, Qs, Im, ImFeat, Qid, Iid, Ai, Tai, Ql in zip(qfeat, qseq, image, imfeat, qid, iid, aidx, ten_aidx, qlen):
                 iter_cnt += 1
                 Qs = Qs.cuda()
@@ -349,8 +351,9 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
                                                                                     rehearsal_ixs,
                                                                                     config.num_rehearsal_samples,
                                                                                     args.max_buffer_size,
-                                                                                    config.buffer_replacement_strategy)
-            for Q, Qs, Im, ImFeat, Qid, Iid, Ai, Tai, Ql in zip(qfeat, qseq, image, imfeat, qid, iid, aidx, ten_aidx, qlen):
+                                                                                    config.buffer_replacement_strategy,
+                                                                                    args.sampling_method)
+            for Q, Qs, ImFeat, Qid, Iid, Ai, Tai, Ql, MFeat in zip(qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat):
                 iter_cnt += 1
                 Qs = Qs.cuda()
                 Ql = Ql.cuda()
@@ -396,9 +399,9 @@ def main():
     dtset = config.dataset
     # 训练集路径
     if args.remind_compressed_features:
-        config.train_path = f'{config.data_path}/all_{dtset}_pq_{args.data_order}.h5'
+        config.feat_path = f'{config.data_path}/all_{dtset}_pq_{args.data_order}.h5'
     else:
-        config.train_path = f'{config.data_path}/all_{dtset}_features'.h5
+        config.feat_path = f'/media/qzhb/DATA1/yi/dorren/all_{dtset}_features.h5'
 
     print(args)
 
@@ -450,19 +453,17 @@ def main():
         train_data, val_data = build_dataloaders(config, data_type, mem_feat)
 
         if args.remind_original_data:
-            net = UpDown
+            net = UpDown(config)
         else:
-            net = UpDown_CNN_frozed
+            net = UpDown_CNN_frozed(config)
         net_running = None
         print(net)
         net.cuda()
 
         start_epoch = 0
 
-        if config.use_lstm:
-            net.embedding.init_embedding('data/glove6b_init_300d_{}.npy'.format(config.dataset))
-            for p in net.embedding.parameters():
-                p.requires_grad = False
+        net.ques_encoder.embedding.init_embedding('data/glove6b_init_300d_{}.npy'
+                                                  .format(config.dataset))
 
         print('training...')
         if args.lr is not None:
