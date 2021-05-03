@@ -196,24 +196,17 @@ class VQAFeatsDataset(Dataset):
         qfeat = dp['qfeat']
         imfeat = imfeat.astype('float32') / (np.linalg.norm(imfeat, axis=1, keepdims=True) + 1e-8)
 
-        if self.config.mkii:
-            codebook_index = self.feat['codebook_indices'][feat_index]
         l=30
 
         qseq = torch.ones(l).long()*self.d.ntoken
         qtokens = self.d.tokenize(dp['q'],False)
         qlen = len(qtokens)
         qseq[:qlen] = torch.from_numpy(np.array(qtokens[:l-1])).long()
+        aidx = dp['aidx']
 
-        if self.config.soft_targets:
-            aidx = build_target(dp['ten_aidx'], self.config)
-        else:
-            aidx = dp['aidx']
+        mfeat = dp['mfeat']
 
-        if self.config.mkii:
-            return qfeat, qseq, imfeat, codebook_index, dp['qid'], aidx, dp['ten_aidx'], qlen
-        else:
-            return qfeat, qseq, imfeat, dp['qid'], dp['iid'], aidx, dp['ten_aidx'], qlen
+        return qfeat, qseq, imfeat, dp['qid'], dp['iid'], aidx, dp['ten_aidx'], qlen, mfeat
 
 
 def collate_batch(data_batch):

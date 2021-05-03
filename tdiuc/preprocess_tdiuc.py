@@ -55,6 +55,7 @@ for split in ['train', 'val']:
     h5file.create_dataset('ten_aidx', (num_instances, 10), dtype=np.int32)
     h5file.create_dataset('atypeidx', (num_instances,), dtype=np.int32)
     h5file.create_dataset('qtypeidx', (num_instances,), dtype=np.int32)
+    h5file.create_dataset('mfeat', (num_instances,), dtype=np.float32)
 
     for idx, ann in enumerate(tqdm(annotations[split])):
         qid = ann['question_id']
