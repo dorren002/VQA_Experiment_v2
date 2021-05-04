@@ -164,8 +164,9 @@ class UpDown_CNN_frozed(nn.Module):
                 qfeat_dim = config.lstm_out
         attention = []
 
-        for i in range(config.num_attn_hops):
-            attention.append(Attention(self.config.cnn_feat_size, qfeat_dim, config.attention_dropout))
+        # for i in range(config.num_attn_hops):
+        attention.append(Attention(self.config.cnn_feat_size, qfeat_dim, config.attention_dropout))
+        attention.append(Attention(self.config.cnn_feat_size, 3072, config.attention_dropout))
 
         self.attention = nn.ModuleList(attention)
         self.classifier = Classifier(qfeat_dim + self.config.cnn_feat_size * config.num_attn_hops,
@@ -187,6 +188,7 @@ class UpDown_CNN_frozed(nn.Module):
                 concat_feat = torch.cat([qfeat, scaled_imfeat], dim=1)
             else:
                 concat_feat = torch.cat([concat_feat, scaled_imfeat], dim=1)
+            qfeat = concat_feat
         preds = self.classifier(concat_feat)
         return preds
 
