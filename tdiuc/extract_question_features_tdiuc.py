@@ -6,7 +6,7 @@ DATASET = 'TDIUC' # or VQAv2
 
 for split in ['train','val']:
     # Load questions.
-    with open(f'{DATA_PATH}/{DATASET}/Questions/{split}_{DATASET}_5k12c_questions.json','r')as f:
+    with open(f'{DATA_PATH}/{DATASET}/Questions/{split}_{DATASET}_questions.json','r')as f:
         dt=json.load(f)['questions']
     questions = [q['question'] for q in dt]
     qids = [q['question_id'] for q in dt]

@@ -9,7 +9,7 @@ import torchvision
 import json
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--path', type=str, default='/media/qzhb/DATA1/yi/dorren/')
+parser.add_argument('--path', type=str, default='/media/qzhb/DATA1/yi/dorren/TDIUC/')
 parser.add_argument('--dataset', default='TDIUC', type=str, choices=['TDIUC', 'VQAv2'])
 parser.add_argument('--max_images', default=None, type=int)
 
