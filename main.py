@@ -54,7 +54,7 @@ def train_epoch(net, criterion, optimizer, data, epoch, net_running):
         qlen = qlen.cuda()
         q = qseq.cuda()
 
-        if args.offline or args.remind_original_data:
+        if args.remind_original_data:
             im = image.cuda()
             p = net(q, im, qlen)
         else:
@@ -122,7 +122,7 @@ def predict(eval_net, data, epoch, expt_name , config, iter_cnt=None):
         qlen = qlen.cuda()
         q = qseq.cuda()
 
-        if args.offline or args.remind_original_data:
+        if args.remind_original_data:
             im = image.cuda()
             p = eval_net(q, im, qlen)
         else:
