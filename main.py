@@ -1,3 +1,4 @@
+import time
 import os,sys,shutil,argparse
 import csv,json,h5py
 
@@ -465,7 +466,6 @@ def main():
         net.ques_encoder.embedding.init_embedding('data/glove6b_init_300d_{}.npy'
                                                   .format(config.dataset))
 
-        print('training...')
         if args.lr is not None:
             print(f'Using lr specified in args {args.lr}')
             config.lr = args.lr
@@ -482,12 +482,17 @@ def main():
         print(json.dumps(args.__dict__, indent=4, sort_keys=True))
         shutil.copy('configs/config_'+args.config_name+'.py', os.path.join(config.expt_dir, 'config_'+args.config_name+'.py'))
 
+        print('TRAINING')
+        print(f'CURRENT TIME ====== {time.asctime( time.localtime(time.time()))}')
+
         if args.offline:
             training_loop(config, net, train_data, val_data, optimizer, criterion, config.expt_dir, net_running, start_epoch)
         elif config.max_epochs>0:
             train_base_init(config, net, train_data, val_data, optimizer, criterion, args.expt_name, net_running)
 
         stream(net, train_data, val_data, optimizer, criterion, config, net_running)
+        print('FINISHED')
+        print(f'CURRENT TIME ====== {time.asctime(time.localtime(time.time()))}')
 
 
 if __name__ == '__main__':

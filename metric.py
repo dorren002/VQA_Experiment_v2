@@ -1,6 +1,8 @@
 import h5py
 from collections import defaultdict
 
+qt_list = ['color', 'object_presence', 'absurd', 'sport_recognition', 'counting', 'attribute', 'object_recognition', 'sentiment_understanding', 'scene_recognition', 'positional_reasoning', 'activity_recognition', 'utility_affordance']
+
 def compute_tdiuc_accuracy(PATH, preds):
     path_ = f'{PATH}/val_TDIUC.h5'
     gt_answers = h5py.File(path_)['aidx'][:]
@@ -42,4 +44,4 @@ def compute_accuracy(path, dataset, preds):
             pass
         else:
             tmp = sum(acc[k]) / len(acc[k])
-            print(f"acc on {k} : {tmp}")
+            print(f"acc on {qt_list[k]} : {tmp}")

@@ -22,7 +22,7 @@ val_file = f'{data_path}/val_{dataset}.h5'
 
 train_batch_size = 512
 val_batch_size = 512
-num_classes = 217  # 1480  # Number of classifier units 1480 for TDIUC, 31xx for VQA,28 for CLEVR
+num_classes = 571  # 1480  # Number of classifier units 1480 for TDIUC, 31xx for VQA,28 for CLEVR
 
 train_on = 'full'
 test_on = 'full'  # 'full' or 'valid'
