@@ -86,14 +86,14 @@ def main(args):
                     _, C, H, W = feats.shape
                     feat_dset = f.create_dataset('image_features', (N, H * W, C),
                                                  dtype=np.float32)
-                    img_dset = f.create_dataset('image', (N, 1, 3, args.image_width, args.image_height),dtype=np.float32)
+                    # img_dset = f.create_dataset('image', (N, 1, 3, args.image_width, args.image_height),dtype=np.float32)
                     iid_dset = f.create_dataset('iids', (N,),
                                                 dtype=np.int64)
 
                 i1 = i0 + len(cur_batch)
                 feats_r = feats.reshape(-1, 2048, 49)
                 feat_dset[i0:i1] = np.transpose(feats_r, (0, 2, 1))
-                img_dset[i0:i1] = np.array(cur_batch)
+                # img_dset[i0:i1] = np.array(cur_batch)
                 i0 = i1
                 print('Processed %d / %d images' % (i1, len(input_paths)))
                 cur_batch = []
@@ -103,7 +103,7 @@ def main(args):
             feats_r = feats.reshape(-1, 2048, 49)
             i1 = i0 + len(cur_batch)
             feat_dset[i0:i1] = np.transpose(feats_r, (0, 2, 1))
-            img_dset[i0:i1] = np.array(cur_batch)
+            # img_dset[i0:i1] = np.array(cur_batch)
             print('Processed %d / %d images' % (i1, len(input_paths)))
         iid_dset[:len(iid)] = np.array(iid, dtype=np.int64)
 
