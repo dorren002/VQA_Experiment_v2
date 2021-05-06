@@ -93,7 +93,7 @@ class QuestionEncoder(nn.Module):
 
     def forward(self, q, q_len):
         q_embed = self.embedding(q)
-        packed = pack_padded_sequence(q_embed, q_len, batch_first=True)
+        packed = pack_padded_sequence(q_embed, q_len, batch_first=True, enforce_sorted=False)
         o, (h, c) = self.lstm(packed)
         h = torch.transpose(h, 0, 1)
         return torch.flatten(h, start_dim=1)
