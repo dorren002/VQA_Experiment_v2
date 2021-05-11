@@ -259,7 +259,7 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
             if iter_cnt == 0:
                 print('Training in streaming fashion...')
                 print(' Network will evaluate at: {}'.format(boundaries))
-            for Q, Qs, Imfeat, Qid, Iid, Ai, Tai, Ql in zip(qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen):
+            for Q, Qs, Im, Qid, Iid, Ai, Tai, Ql in zip(qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen):
                 iter_cnt += 1
                 Qs = Qs.cuda().unsqueeze(0)
                 Ql = Ql.cuda().unsqueeze(0)

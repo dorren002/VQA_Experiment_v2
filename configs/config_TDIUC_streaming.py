@@ -52,7 +52,7 @@ use_lstm = True
 
 # Training
 overwrite_expt_dir = True  # Set to True during dev phase
-max_epochs = 20
+max_epochs = 40 
 test_interval = 8
 
 # Model

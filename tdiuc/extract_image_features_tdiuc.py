@@ -60,10 +60,10 @@ def path2iid(path):
 
 
 def main(args):
-    args.output_h5_file = args.path + f"/{args.dataset}/all_{args.dataset}_features.h5"
-    p1 = f"{args.path}/{args.dataset}/Images/train2014"
+    args.output_h5_file = args.path + f"/all_{args.dataset}_features.h5"
+    p1 = f"{args.path}/{args.dataset}/Images/train"
     input_paths = [os.path.join(p1, a) for a in os.listdir(p1)]
-    p1 = f'{args.path}/{args.dataset}/Images/val2014'
+    p1 = f'{args.path}/{args.dataset}/Images/val'
     input_paths.extend([os.path.join(p1, a) for a in os.listdir(p1)])
 
     model = build_model(args)
@@ -118,7 +118,7 @@ def main(args):
         lut['image_id_to_ix'] = iid2idx
         lut['image_ix_to_id'] = idx2iid
 
-        json.dump(lut, open(f'~/dorren/VQA_Experiment/data/map_{args.dataset}_features.json', 'w'))
+        json.dump(lut, open(f'/home/qzhb/dorren/VQA_Experiment/data/TDIUC/map_{args.dataset}_features.json', 'w'))
 
 
 if __name__ == '__main__':

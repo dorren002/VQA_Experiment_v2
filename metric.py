@@ -44,4 +44,4 @@ def compute_accuracy(path, dataset, preds):
             pass
         else:
             tmp = sum(acc[k]) / len(acc[k])
-            print(f"acc on {qt_list[k]} : {tmp}")
+            print(f"acc on {k} : {tmp}")
