@@ -4,7 +4,7 @@ lr=2e-3
 CONFIG=TDIUC_streaming
 export PYTHONPATH=/home/qzhb/dorren/VQA_Experement/
 
-DATA_ORDER=iid
+DATA_ORDER=qtype
 expt=${CONFIG}_${DATA_ORDER}_${lr}
 MODE=limited_buffer
 BUFFERSIZE=10000
