@@ -186,8 +186,11 @@ def save(net, optimizer, epoch, expt_dir, suffix):
     torch.save(data, latest_path)
 
 # 下标s
-def get_boundaries(train_data, config):
-    data = train_data.dataset.data
+def get_boundaries(train_data, config, Rehearsal=False):
+    if Rehearsal==True:
+        data = train_data.data
+    else:
+        data = train_data.dataset.data
     num_pts = len(data)
 
     boundaries = []
@@ -226,12 +229,13 @@ def get_current_rehearsal_data(rehearsal_data, boundary):
 
 def train_icarl_manner(config, net, train_data, val_data, optimizer, criterion, expt_name, net_running):
     rehearsal_data = build_icarl_rehearsal_dataloaders(config, [])
-    boundaries = get_boundaries(rehearsal_data, config)
+    boundaries = get_boundaries(train_data, config)
+    boundaries_r = get_boundaries(rehearsal_data, config, Rehearsal = True)
     eval_net = net_running if config.use_exponential_averaging else net
     for loop in range(len(boundaries)-1):
         data = build_icarl_dataloader(train_data.dataset, boundaries[loop], boundaries[loop+1], config.train_batch_size)
         if loop != 0:
-            data_r = get_current_rehearsal_data(rehearsal_data, boundary=boundaries[loop-1])
+            data_r = get_current_rehearsal_data(rehearsal_data, boundary=boundaries_r[loop-1])
             data.dataset.data += data_r.dataset.data
         for epoch in range(0, config.max_epochs):
             epoch = epoch + 1
@@ -491,7 +495,7 @@ def main():
         elif config.max_epochs>0:
             train_base_init(config, net, train_data, val_data, optimizer, criterion, args.expt_name, net_running)
 
-        stream(net, train_data, val_data, optimizer, criterion, config, net_running)
+        # stream(net, train_data, val_data, optimizer, criterion, config, net_running)
         print('FINISHED')
         print(f'CURRENT TIME ====== {time.asctime(time.localtime(time.time()))}')
 

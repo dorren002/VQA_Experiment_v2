@@ -25,7 +25,7 @@ for split in ['rehearsal']:
     qid2idx = {qid: idx for idx, qid in enumerate(qids)}
     num_instances = len(annotations[split])
 
-    h5file = h5py.File(f'{PATH}/{DATASET}/icarl_rehearsal.h5', 'w')
+    h5file = h5py.File(f'{PATH}/{DATASET}/icarl_rehearsal_TDIUC.h5', 'w')
     h5file.create_dataset('qfeat', (num_instances, 2048), dtype=np.float32)
     h5file.create_dataset('qid', (num_instances,), dtype=np.int64)
     h5file.create_dataset('iid', (num_instances,), dtype=np.int64)
