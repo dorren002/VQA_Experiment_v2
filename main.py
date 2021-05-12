@@ -28,7 +28,7 @@ parser.add_argument('--remind_original_data', action='store_true')
 parser.add_argument('--remind_features', action='store_true')
 parser.add_argument('--remind_compressed_features', action='store_true')
 
-parser.add_argument('--lr', type=float, default=None)
+parser.add_argument('--lr', type=float, default=2e-3)
 parser.add_argument('--data_order', type=str, choices=['iid','qtype'])
 parser.add_argument('--rehearsal_mode', type=str, choices=['default','limited_buffer'])
 parser.add_argument('--max_buffer_size', type=int, default=None)
@@ -239,8 +239,9 @@ def get_rehearsal_ixs(net, data, num_r):
 
 
 def train_icarl_manner(config, net, train_data, val_data, optimizer, criterion, expt_name, net_running):
-    boundaries = get_boundaries(train_data)
-    boundaries = sorted(boundaries.append(0))
+    boundaries = get_boundaries(train_data, config)
+    boundaries.append(0)
+    boundaries = sorted(boundaries)
     rehearsal_data = build_icarl_rehearsal_dataloaders(config, [])
     eval_net = net_running if config.use_exponential_averaging else net
     for loop in config.num_classes:
@@ -504,7 +505,7 @@ def main():
         if args.offline:
             training_loop(config, net, train_data, val_data, optimizer, criterion, config.expt_dir, net_running, start_epoch)
         if args.icarl:
-            train_icarl_manner(config, net, train_data, val_data, optimizer, criterion, config.expt_idr, net_running, start_epoch)
+            train_icarl_manner(config, net, train_data, val_data, optimizer, criterion, config.expt_dir, net_running)
         elif config.max_epochs>0:
             train_base_init(config, net, train_data, val_data, optimizer, criterion, args.expt_name, net_running)
 
