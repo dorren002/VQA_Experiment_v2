@@ -227,13 +227,12 @@ def get_current_rehearsal_data(rehearsal_data, boundary):
 def train_icarl_manner(config, net, train_data, val_data, optimizer, criterion, expt_name, net_running):
     rehearsal_data = build_icarl_rehearsal_dataloaders(config, [])
     boundaries = get_boundaries(rehearsal_data, config)
-    boundaries.append(0)
-    boundaries = sorted(boundaries)
     eval_net = net_running if config.use_exponential_averaging else net
     for loop in range(len(boundaries)-1):
         data = build_icarl_dataloader(train_data.dataset, boundaries[loop], boundaries[loop+1], config.train_batch_size)
-        data_r = get_current_rehearsal_data(rehearsal_data, boundary=boundaries[loop+1])
-        data.dataset.data += data_r.dataset.data
+        if loop != 0:
+            data_r = get_current_rehearsal_data(rehearsal_data, boundary=boundaries[loop-1])
+            data.dataset.data += data_r.dataset.data
         for epoch in range(0, config.max_epochs):
             epoch = epoch + 1
             acc, vqa_acc = train_epoch(net, criterion, optimizer, data, epoch, net_running)
