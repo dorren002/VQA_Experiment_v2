@@ -4,7 +4,7 @@ lr=2e-3
 CONFIG=TDIUC_streaming
 export PYTHONPATH=/home/qzhb/dorren/VQA_Experement/
 
-DATA_ORDER=iid
+DATA_ORDER=qtype
 expt=${CONFIG}_${DATA_ORDER}_${lr}
 MODE=limited_buffer
 BUFFERSIZE=10000
@@ -13,7 +13,10 @@ BUFFERSIZE=10000
 CUDA_VISIBLE_DEVICES=0 nohup python -u main.py \
 --config_name ${CONFIG} \
 --expt_name ${expt} \
---offline \
+--remind_features \
+--rehearsal_mode ${MODE} \
+--max_buffer_size ${BUFFERSIZE} \
+--data_order ${DATA_ORDER} \
 --lr ${lr} &> ../logs/${expt}.log &
 
 #DATA_ORDER=qtype # or qtype

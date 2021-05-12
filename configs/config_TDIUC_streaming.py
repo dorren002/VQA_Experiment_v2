@@ -17,7 +17,7 @@ d = Dictionary.load_from_file(f'data/dictionary_{dataset}.pkl')
 
 map_path = f'{data_path}/map_{dataset}_features.json'
 
-train_file = f'{data_path}/train_{dataset}.h5'
+train_file = f'{data_path}/train_{dataset}_sorted.h5'
 val_file = f'{data_path}/val_{dataset}.h5'
 
 train_batch_size = 512
@@ -52,7 +52,7 @@ use_lstm = True
 
 # Training
 overwrite_expt_dir = True  # Set to True during dev phase
-max_epochs = 40 
+max_epochs = 20 
 test_interval = 8
 
 # Model
