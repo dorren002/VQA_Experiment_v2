@@ -219,9 +219,8 @@ def train_base_init(config, net, train_data, val_data, optimizer, criterion, exp
     training_loop(config, net, base_init_data_loader, val_data, optimizer, criterion, expt_name, net_running)
     print("Base init completed!\n")
 
-def get_current_rehearsal_data(rehearsal_data, boundary):
-    rehearsal_ixs = range(0, boundary)
-    rehearsal_data_loader = build_icarl_dataloader(rehearsal_data, rehearsal_ixs, config.train_batch_size)
+def get_current_rehearsal_data(rehearsal_data, boundary): 
+    rehearsal_data_loader = build_icarl_dataloader(rehearsal_data, 0, boundary, config.train_batch_size)
     return rehearsal_data_loader
 
 
@@ -234,9 +233,8 @@ def train_icarl_manner(config, net, train_data, val_data, optimizer, criterion, 
     for loop in range(len(boundaries)-1):
         data = build_icarl_dataloader(train_data.dataset, boundaries[loop], boundaries[loop+1], config.train_batch_size)
         data_r = get_current_rehearsal_data(rehearsal_data, boundary=boundaries[loop+1])
-        print("data:", type(data), data.shape)
-        print("data_rehearsal:", type(data), data_r.shape)
-
+        
+        data.dataset.data.append(data_r.dataset.data)
         for epoch in range(0, config.max_epochs):
             epoch = epoch + 1
             acc, vqa_acc = train_epoch(net, criterion, optimizer, data, epoch, net_running)
