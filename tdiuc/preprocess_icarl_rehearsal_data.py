@@ -8,33 +8,15 @@ PATH = '/home/qzhb/dorren/VQA_Experiment/data'
 DATASET = 'TDIUC'
 annotations = dict()
 
-for split in ['train', 'val']:
-    with open(f'{PATH}/{DATASET}/Annotations/{split}_{DATASET}_annotations_sorted.json')as f:
-        annotations[split] = json.load(f)['annotations']
+with open(f'{PATH}/{DATASET}/Annotations/icaral_rehearsal_annotations.json')as f:
+    annotations["rehearsal"] = json.load(f)['annotations']
 meta = defaultdict(list)
 
-# train split
-for ann in annotations['train']:
-    ten_ans = [a['answer'] for a in ann['answers']] * 10
-    ans = ten_ans[0]
-    meta['a'].append(ans)
-    meta['atype'].append('answer_type')
-    meta['qtype'].append(ann['question_type'])
-
-lut = dict()
-
-# 答案由多至少排序，id从0递增  最多的：0
-for m in ['a', 'atype', 'qtype']:
-    most_common = Counter(meta[m]).most_common()
-    lut[f'{m}2idx'] = {a[0]: idx for idx, a in enumerate(most_common)} 
-
-# 排好序的答案
-json.dump(lut, open(f'{PATH}/{DATASET}/LUT_{DATASET}.json', 'w'))
-
+lut = json.load(open(f'{PATH}/{DATASET}/LUT_{DATASET}.json'))
 # %%
 dt = h5py.special_dtype(vlen=str)
-for split in ['train', 'val']:
-    qfeat_file = h5py.File(f'{PATH}/{DATASET}/questions_{DATASET}_{split}.h5', 'r')
+for split in ['rehearsal']:
+    qfeat_file = h5py.File(f'{PATH}/{DATASET}/questions_{DATASET}_train.h5', 'r')
 
     mem_feat = dict()
     for dset in qfeat_file.keys():
@@ -43,7 +25,7 @@ for split in ['train', 'val']:
     qid2idx = {qid: idx for idx, qid in enumerate(qids)}
     num_instances = len(annotations[split])
 
-    h5file = h5py.File(f'{PATH}/{DATASET}/{split}_{DATASET}_sorted.h5', 'w')
+    h5file = h5py.File(f'{PATH}/{DATASET}/icarl_rehearsal.h5', 'w')
     h5file.create_dataset('qfeat', (num_instances, 2048), dtype=np.float32)
     h5file.create_dataset('qid', (num_instances,), dtype=np.int64)
     h5file.create_dataset('iid', (num_instances,), dtype=np.int64)
