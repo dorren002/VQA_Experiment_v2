@@ -180,7 +180,7 @@ class UpDown_CNN_frozed(nn.Module):
             outputs = None
             qfeat, attn_map, scaled_imfeat, preds = torch.Tensor(), torch.Tensor(), torch.Tensor(), torch.Tensor()
 
-            for name, module in self.submodule._modules.items():
+            for name, module in self._modules.items():
                 if name == "ques_encoder":
                     qfeat = module(q, ql)
                 elif name == "attention":
