@@ -7,8 +7,11 @@ from collections import Counter
 
 import torch
 from torch.utils.data import Dataset, DataLoader
-from data_utils import RehearsalBatchSampler, FixedBufferRehearsalBatchSampler, OriginalDataFixedBufferRehearsalBatchSampler
 from torch.utils.data.sampler import SubsetRandomSampler
+
+from MyDataLoader import MySampler, MyDataLoader
+from data_utils import RehearsalBatchSampler, FixedBufferRehearsalBatchSampler, OriginalDataFixedBufferRehearsalBatchSampler
+
 
 
 # 一个问题一个dic
@@ -20,6 +23,7 @@ def dictoflists2listofdicts(dictoflists):
     listofdicts = []
     for i in range(len(dictoflists['qid'])):
         tmp = {}
+        tmp["idx"] = i
         for k in dictoflists:
             tmp[k] = dictoflists[k][i]
         listofdicts.append(tmp)
@@ -48,6 +52,12 @@ def format_feats_data(h5file, config, num_classes, arrangement = 'random', data_
         random.Random(666).shuffle(data)
     return data
 
+def format_icarl_rehearsal_data(h5file):
+    mem_feat = dict()
+    for dset in h5file.keys():
+        mem_feat[dset] = h5file[dset][:]
+    mem_feat = dictoflists2listofdicts(mem_feat)
+    return mem_feat
 
 def build_target(ten_aidx, config):
     scores = torch.zeros((config.num_classes))
@@ -204,9 +214,7 @@ class VQAFeatsDataset(Dataset):
         qseq[:qlen] = torch.from_numpy(np.array(qtokens[:l-1])).long()
         aidx = dp['aidx']
 
-        mfeat = dp['mfeat']
-
-        return qfeat, qseq, imfeat, dp['qid'], dp['iid'], aidx, dp['ten_aidx'], qlen, mfeat
+        return dp['idx'], qfeat, qseq, imfeat, dp['qid'], dp['iid'], aidx, dp['ten_aidx'], qlen, dp['mfeat']
 
 
 def collate_batch(data_batch):
@@ -271,17 +279,30 @@ def build_rehearsal_dataloader(dataset, rehearsal_ixs, num_rehearsal_samples):
     return loader
 
 
-def build_original_dataloader_with_limited_buffer(dataset, rehearsal_ixs, num_rehearsal_samples, max_buffer_size, buffer_replacement_strategy):
-    rehearsal_batch_sampler = OriginalDataFixedBufferRehearsalBatchSampler(max_buffer_size, num_rehearsal_samples, buffer_replacement_strategy)
-    loader = DataLoader(dataset, batch_sampler=rehearsal_batch_sampler)
-    return loader
-
-
 def build_rehearsal_dataloader_with_limited_buffer(dataset, rehearsal_ixs, num_rehearsal_samples, max_buffer_size, buffer_replacement_strategy,sampling_method):
-    rehearsal_batch_sampler = FixedBufferRehearsalBatchSampler(max_buffer_size, num_rehearsal_samples, buffer_replacement_strategy, sampling_method)
-    loader = DataLoader(dataset, batch_sampler=rehearsal_batch_sampler)
+    if sampling_method == 'random':
+        rehearsal_batch_sampler = FixedBufferRehearsalBatchSampler(max_buffer_size, num_rehearsal_samples, buffer_replacement_strategy, sampling_method)
+        loader = DataLoader(dataset, batch_sampler=rehearsal_batch_sampler)
+    elif sampling_method == 'MoF':
+        loader = MyDataLoader(dataset, max_buffer_size, num_rehearsal_samples, buffer_replacement_strategy)
+    else:
+        batch_sampler = MySampler(dataset, max_buffer_size, num_rehearsal_samples, buffer_replacement_strategy, sampling_method)
+        loader = DataLoader(dataset, batch_sampler=batch_sampler)
     return loader
 
+def build_icarl_dataloader(dataset, start_ixs, end_ixs, batch_size):
+    data_indices = range(start_ixs, end_ixs)
+    index_sampler = SubsetRandomSampler(data_indices)
+    loader = DataLoader(dataset, batch_size=batch_size, sampler=index_sampler, num_workers=8, collate_fn=collate_batch)
+    return loader
+
+def build_icarl_rehearsal_dataloaders(config, mem_feat, **kwargs):
+    print('Loading iCaRL Rehearsal Data !')
+    icarl_h5file = h5py.File(config.icarl_rehearsal_file, 'r')
+    train_data = format_icarl_rehearsal_data(icarl_h5file)
+    train_dataset = VQAFeatsDataset(train_data, config, 'train', mem_feat)
+
+    return train_dataset
 
 def main():
     pass

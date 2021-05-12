@@ -175,22 +175,41 @@ class UpDown_CNN_frozed(nn.Module):
                                      config.classfier_dropout
                                      )
 
-    def forward(self, q, imfeat, ql):
-        #        print(imfeat.shape)
-        if self.config.use_lstm:
-            qfeat = self.ques_encoder(q, ql)
+    def forward(self, q, imfeat, ql, extracter=False):
+        if extracter:
+            outputs = None
+            qfeat, attn_map, scaled_imfeat, preds = torch.Tensor(), torch.Tensor(), torch.Tensor(), torch.Tensor()
+
+            for name, module in self.submodule._modules.items():
+                if name == "ques_encoder":
+                    qfeat = module(q, ql)
+                elif name == "attention":
+                    for i in range(self.config.num_attn_hops):
+                        attn_map = module[i](qfeat, imfeat)
+                        scaled_imfeat = (attn_map * imfeat).sum(1)
+                        if i == 0:
+                            concat_feat = torch.cat([qfeat, scaled_imfeat], dim=1)
+                        else:
+                            concat_feat = torch.cat([concat_feat, scaled_imfeat], dim=1)
+                else:
+                    preds = module(concat_feat)
+
+            return concat_feat
         else:
-            qfeat = q
-        for i in range(self.config.num_attn_hops):
-            attn_map = self.attention[i](qfeat, imfeat)
-            scaled_imfeat = (attn_map * imfeat).sum(1)
-            if i == 0:
-                concat_feat = torch.cat([qfeat, scaled_imfeat], dim=1)
+            if self.config.use_lstm:
+                qfeat = self.ques_encoder(q, ql)
             else:
-                concat_feat = torch.cat([concat_feat, scaled_imfeat], dim=1)
-            # qfeat = concat_feat
-        preds = self.classifier(concat_feat)
-        return preds
+                qfeat = q
+            for i in range(self.config.num_attn_hops):
+                attn_map = self.attention[i](qfeat, imfeat)
+                scaled_imfeat = (attn_map * imfeat).sum(1)
+                if i == 0:
+                    concat_feat = torch.cat([qfeat, scaled_imfeat], dim=1)
+                else:
+                    concat_feat = torch.cat([concat_feat, scaled_imfeat], dim=1)
+                # qfeat = concat_feat
+            preds = self.classifier(concat_feat)
+            return preds
 
 
 class UpDown(nn.Module):

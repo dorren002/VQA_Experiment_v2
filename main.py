@@ -1,12 +1,14 @@
 import time
 import os,sys,shutil,argparse
 import csv,json,h5py
+from collections import defaultdict
 
 import torch
+import numpy as np
 
 from vqa_model import UpDown_CNN_frozed, UpDown
 import configs.config_TDIUC_streaming as config
-from vqa_dataloader import build_dataloaders, build_rehearsal_dataloader, build_base_init_dataloader, build_rehearsal_dataloader_with_limited_buffer, build_original_dataloader_with_limited_buffer
+from vqa_dataloader import build_dataloaders, build_base_init_dataloader, build_rehearsal_dataloader_with_limited_buffer, build_icarl_rehearsal_dataloaders, build_icarl_dataloader
 
 
 import vqa_dataloader as vqaloader
@@ -21,16 +23,18 @@ parser.add_argument('--full', action='store_true')
 
 parser.add_argument('--offline', action='store_true')
 parser.add_argument('--stream', action="store_true")
+parser.add_argument('--icarl', action='store_true')
 parser.add_argument('--remind_original_data', action='store_true')
 parser.add_argument('--remind_features', action='store_true')
 parser.add_argument('--remind_compressed_features', action='store_true')
 
+parser.add_argument('--lr', type=float, default=None)
 parser.add_argument('--data_order', type=str, choices=['iid','qtype'])
 parser.add_argument('--rehearsal_mode', type=str, choices=['default','limited_buffer'])
 parser.add_argument('--max_buffer_size', type=int, default=None)
 parser.add_argument('--sampling_method', type=str, default='random')
 parser.add_argument('--buffer_replacement_strategy', type=str, choices=['queue','random'], default='random')
-parser.add_argument('--lr', type=float, default=None)
+
 
 args = parser.parse_args()
 
@@ -46,7 +50,7 @@ def train_epoch(net, criterion, optimizer, data, epoch, net_running):
     net.train()
     total,total_loss = 0,0
     correct, correct_vqa = 0,0
-    for qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
+    for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
         if config.soft_targets:
             aidx = aidx.cuda()
         else:
@@ -119,7 +123,7 @@ def predict(eval_net, data, epoch, expt_name , config, iter_cnt=None):
 
     correct, correct_vqa, total = 0, 0, 0
     results = {}
-    for qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
+    for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
         qlen = qlen.cuda()
         q = qseq.cuda()
 
@@ -215,6 +219,45 @@ def train_base_init(config, net, train_data, val_data, optimizer, criterion, exp
     training_loop(config, net, base_init_data_loader, val_data, optimizer, criterion, expt_name, net_running)
     print("Base init completed!\n")
 
+def get_rehearsal_ixs(net, data, num_r):
+    rehearsal_ixs = []
+    features = defaultdict(list)
+    for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
+        qlen = qlen.cuda()
+        q = qseq.cuda()
+
+        imfeat = imfeat.cuda()
+        feature = net(q, imfeat, qlen, extracter=True)
+        for i in range(len(aidx)):
+            features[ixs[i]].append(feature[i])
+    for aidx, feats in features.items():
+        mean_feats = torch.mean(feats)
+        x = []
+        for feat in feats:
+            x.append(torch.dist(mean_feats, feat, p=2))
+        rehearsal_ixs.append(np.argmin(x))
+
+
+def train_icarl_manner(config, net, train_data, val_data, optimizer, criterion, expt_name, net_running):
+    boundaries = get_boundaries(train_data)
+    boundaries = sorted(boundaries.append(0))
+    rehearsal_data = build_icarl_rehearsal_dataloaders(config, [])
+    eval_net = net_running if config.use_exponential_averaging else net
+    for loop in config.num_classes:
+        data = build_icarl_dataloader(train_data.dataset, boundaries[loop], boundaries[loop+1], config.train_batch_size)
+        if len(rehearsal_data)!=0:
+            data.append(train_data.dataset[k] for k in rehearsal_data)
+        for epoch in range(0, config.max_epochs):
+            epoch = epoch + 1
+            acc, vqa_acc = train_epoch(net, criterion, optimizer, data, epoch, net_running)
+            rehearsal_ix = get_rehearsal_ixs(net, train_data)
+            rehearsal_data.append(rehearsal_ix)
+            if epoch % config.test_interval == 0:
+                acc, vqa_acc = predict(eval_net, val_data, epoch, config.expt_dir, config)
+
+
+    acc, vqa_acc = predict(eval_net, val_data, epoch, config.expt_dir, config)
+
 
 def merge_data(Qs, Im, Ql, Ai, Qs_r, Im_r, Ql_r, Ai_r):
     data_size = Qs.shape[0] + Qs_r.shape[0]
@@ -253,7 +296,7 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
     iter_cnt, index = 0,0
     boundaries = get_boundaries(data, config)
 
-    for qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
+    for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
         net.train()
         if args.stream:
             if iter_cnt == 0:
@@ -287,59 +330,7 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
             inline_print('Processed {0} of {1}'.format(iter_cnt, len(data) * data.batch_size))
 
         elif args.remind_original_data:
-            net.train()
-            # 初始化索引
-            if iter_cnt == 0:
-                print('\nStreaming with rehearsal...')
-                print(' Network will evaluate at: {}'.format(boundaries))
-                rehearsal_ixs = []
-
-                rehearsal_data = build_rehearsal_dataloader_with_limited_buffer(data.dataset,
-                                                                                    rehearsal_ixs,
-                                                                                    config.num_rehearsal_samples,
-                                                                                    args.max_buffer_size,
-                                                                                    config.buffer_replacement_strategy,
-                                                                                    args.sampling_method)
-            for Q, Qs, Im, ImFeat, Qid, Iid, Ai, Tai, Ql in zip(qfeat, qseq, image, imfeat, qid, iid, aidx, ten_aidx, qlen):
-                iter_cnt += 1
-                Qs = Qs.cuda()
-                Ql = Ql.cuda()
-                Im = Im.cuda()
-                Ai = Ai.long().cuda()  # 排序的answer id
-
-                # rehearsal_ixs.append(index)
-                # index是buffer里的id，Ai是排序的answerid
-                rehearsal_data.batch_sampler.update_buffer(index, int(Ai))
-
-                # Do not stream until we reach the first boundary point
-                if index < boundaries[0]:
-                    index += 1
-                    continue
-
-                # Start streaming after first boundary point
-                rehearsal_data_iter = iter(rehearsal_data)
-
-                Qs, Im, Ql, Ai = Qs.unsqueeze(0), Im.unsqueeze(0), Ql.unsqueeze(0), Ai.unsqueeze(0)  # 当前的
-                if index > 0:
-                    Q_r, Qs_r, Im_r, Qid_r, Iid_r, Ai_r, Tai_r, Ql_r = next(rehearsal_data_iter)
-                    # print(Im_r.shape)
-                    Qs_merged, Im_merged, Ql_merged, Ai_merged = merge_data(Qs, Im, Ql, Ai, Qs_r, Im_r, Ql_r, Ai_r)
-                else:
-                    Qs_merged, Im_merged, Ql_merged, Ai_merged = Qs, Im, Ql, Ai
-
-                # print('here')
-                p = net(Qs_merged, Im_merged, Ql_merged)
-                loss = criterion(p, Ai_merged)
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-                if iter_cnt in boundaries:
-                    print('\n\nBoundary {} reached, evaluating...'.format(iter_cnt))
-                    predict(eval_net, test_data, 'NA', config.expt_dir, config, iter_cnt)
-                    #    save(eval_net, optimizer, 'NA', config.expt_dir, suffix='boundary_{}'.format(iter_cnt))
-                    net.train()
-                index += 1
-            inline_print('Processed {0} of {1}'.format(iter_cnt, len(data) * data.batch_size))
+            pass
         elif args.remind_features:
             net.train()
             # 初始化索引
@@ -354,7 +345,7 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
                                                                                     args.max_buffer_size,
                                                                                     config.buffer_replacement_strategy,
                                                                                     args.sampling_method)
-            for Q, Qs, ImFeat, Qid, Iid, Ai, Tai, Ql, MFeat in zip(qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat):
+            for Ixs, Q, Qs, ImFeat, Qid, Iid, Ai, Tai, Ql, MFeat in zip(ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat):
                 iter_cnt += 1
                 Qs = Qs.cuda()
                 Ql = Ql.cuda()
@@ -394,6 +385,31 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
                     net.train()
                 index += 1
             inline_print('Processed {0} of {1}'.format(iter_cnt, len(data) * data.batch_size))
+        elif args.icarl:
+            net.train()
+            rehearsal_data = build_icarl_rehearsal_dataloaders(config, [])
+            if iter_cnt == 0:
+                print('Training in iCaRL fashion...')
+                print(' Network will evaluate at: {}'.format(boundaries))
+            for Ixs, Q, Qs, ImFeat, Qid, Iid, Ai, Tai, Ql, MFeat in zip(ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat):
+                iter_cnt += 1
+                Qs = Qs.cuda()
+                Ql = Ql.cuda()
+                Im = ImFeat.cuda()
+                Ai = Ai.long().cuda()
+
+                if index < boundaries[0]:
+                    index += 1
+                    continue
+
+                Qs, Im, Ql, Ai = Qs.unsqueeze(0), Im.unsqueeze(0), Ql.unsqueeze(0), Ai.unsqueeze(0)
+                if index > 0:
+                    Q_r, Qs_r, Im_r, Qid_r, Iid_r, Ai_r, Tai_r, Ql_r, _ = next(rehearsal_data_iter)
+                    Qs_merged, Im_merged, Ql_merged, Ai_merged = merge_data(Qs, Im, Ql, Ai, Qs_r, Im_r, Ql_r, Ai_r)
+                else:
+                    Qs_merged, Im_merged, Ql_merged, Ai_merged = Qs, Im, Ql, Ai
+
+
 
 
 def main():
