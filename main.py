@@ -219,7 +219,7 @@ def train_base_init(config, net, train_data, val_data, optimizer, criterion, exp
     training_loop(config, net, base_init_data_loader, val_data, optimizer, criterion, expt_name, net_running)
     print("Base init completed!\n")
 
-def get_rehearsal_ixs(net, data, num_r):
+def get_rehearsal_ixs(net, data):
     rehearsal_ixs = []
     features = defaultdict(list)
     for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
@@ -242,9 +242,9 @@ def train_icarl_manner(config, net, train_data, val_data, optimizer, criterion, 
     boundaries = get_boundaries(train_data, config)
     boundaries.append(0)
     boundaries = sorted(boundaries)
-    rehearsal_data = build_icarl_rehearsal_dataloaders(config, [])
+    rehearsal_data = []
     eval_net = net_running if config.use_exponential_averaging else net
-    for loop in config.num_classes:
+    for loop in range(config.num_classes):
         data = build_icarl_dataloader(train_data.dataset, boundaries[loop], boundaries[loop+1], config.train_batch_size)
         if len(rehearsal_data)!=0:
             data.append(train_data.dataset[k] for k in rehearsal_data)
