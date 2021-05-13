@@ -1,6 +1,6 @@
 import time
 import os,sys,shutil,argparse
-import csv,json,h5py
+import csv,json,h5py,yaml
 from collections import defaultdict
 
 import torch
@@ -476,6 +476,13 @@ def main():
         else:
             # net = UpDown_CNN_frozed(config)
             __C=Cfgs()
+            cfg_file = "configs/small_model.yml"
+            with open(cfg_file, 'r') as f:
+                yaml_dict = yaml.load(f)
+
+            args_dict = {**yaml_dict, **args_dict}
+            __C.add_args(args_dict)
+            __C.proc()
             net = Net(__C, config.d.ntoken, config.emb_dim)
         net_running = None
         print(net)
