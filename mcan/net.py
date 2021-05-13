@@ -4,8 +4,8 @@
 # Written by Yuhao Cui https://github.com/cuiyuhao1996
 # --------------------------------------------------------
 
-from net_utils import FC, MLP, LayerNorm
-from mca import MCA_ED
+from mcan.net_utils import FC, MLP, LayerNorm
+from mcan.mca import MCA_ED
 
 import numpy as np
 import torch.nn as nn

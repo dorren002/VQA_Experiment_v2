@@ -4,7 +4,7 @@
 # Written by Yuhao Cui https://github.com/cuiyuhao1996
 # --------------------------------------------------------
 
-from core.model.net_utils import FC, MLP, LayerNorm
+from mcan.net_utils import FC, MLP, LayerNorm
 
 import torch.nn as nn
 import torch.nn.functional as F

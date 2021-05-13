@@ -4,7 +4,7 @@
 # Written by Yuhao Cui https://github.com/cuiyuhao1996
 # --------------------------------------------------------
 
-from path_cfgs import PATH
+from configs.path_cfgs import PATH
 # from path_cfgs import PATH
 
 import os, torch, random
