@@ -7,8 +7,8 @@
 from mcan.net_utils import FC, MLP, LayerNorm
 from mcan.mca import MCA_ED
 
-import numpy as np
 import torch.nn as nn
+import numpy as np
 import torch.nn.functional as F
 import torch
 
@@ -60,11 +60,83 @@ class AttFlat(nn.Module):
 # -------------------------
 
 class Net(nn.Module):
-    def __init__(self, __C, token_size, answer_size):
+    def __init__(self, __C, pretrained_emb, token_size, answer_size):
         super(Net, self).__init__()
 
         self.embedding = nn.Embedding(
             num_embeddings=token_size,
             embedding_dim=__C.WORD_EMBED_SIZE
         )
-    ``
+
+        # Loading the GloVe embedding weights
+        self.init_embedding('data/glove6b_init_300d_TDIUC.npy',token_size, __C.WORD_EMBED_SIZE)
+
+        self.lstm = nn.LSTM(
+            input_size=__C.WORD_EMBED_SIZE,
+            hidden_size=__C.HIDDEN_SIZE,
+            num_layers=1,
+            batch_first=True
+        )
+
+        self.img_feat_linear = nn.Linear(
+            __C.IMG_FEAT_SIZE,
+            __C.HIDDEN_SIZE
+        )
+
+        self.backbone = MCA_ED(__C)
+
+        self.attflat_img = AttFlat(__C)
+        self.attflat_lang = AttFlat(__C)
+
+        self.proj_norm = LayerNorm(__C.FLAT_OUT_SIZE)
+        self.proj = nn.Linear(__C.FLAT_OUT_SIZE, answer_size)
+
+    def init_embedding(self, np_file, ntoken, emb_dim):
+        weight_init = torch.from_numpy(np.load(np_file))
+        assert weight_init.shape == (ntoken, emb_dim)
+        self.emb.weight.data[:ntoken] = weight_init
+
+    def forward(self, ques_ix, img_feat, ql):
+
+        # Make mask
+        lang_feat_mask = self.make_mask(ques_ix.unsqueeze(2))
+        img_feat_mask = self.make_mask(img_feat)
+
+        # Pre-process Language Feature
+        lang_feat = self.embedding(ques_ix)
+        lang_feat, _ = self.lstm(lang_feat)
+
+        # Pre-process Image Feature
+        img_feat = self.img_feat_linear(img_feat)
+
+        # Backbone Framework
+        lang_feat, img_feat = self.backbone(
+            lang_feat,
+            img_feat,
+            lang_feat_mask,
+            img_feat_mask
+        )
+
+        lang_feat = self.attflat_lang(
+            lang_feat,
+            lang_feat_mask
+        )
+
+        img_feat = self.attflat_img(
+            img_feat,
+            img_feat_mask
+        )
+
+        proj_feat = lang_feat + img_feat
+        proj_feat = self.proj_norm(proj_feat)
+        proj_feat = torch.sigmoid(self.proj(proj_feat))
+
+        return proj_feat
+
+
+    # Masking
+    def make_mask(self, feature):
+        return (torch.sum(
+            torch.abs(feature),
+            dim=-1
+        ) == 0).unsqueeze(1).unsqueeze(2)
