@@ -8,14 +8,23 @@ Error processing line 1 of /home/qzhb/anaconda3/lib/python3.7/site-packages/movi
   AttributeError: 'NoneType' object has no attribute 'loader'
 
 Remainder of file ignored
+loading dictionary from data/dictionary_TDIUC.pkl
+Namespace(buffer_replacement_strategy='random', config_name='TDIUC_streaming', data_order=None, expt_name='TDIUC_streaming_qtype_2e-3', full=False, icarl=False, lr=0.002, max_buffer_size=None, offline=True, rehearsal_mode=None, remind_compressed_features=False, remind_features=False, remind_original_data=False, sampling_method='random', stream=False)
+Building Dataloaders !
+Loading Train Data !
+Filtering Train Data !
+Loading Test Data
+Filtering Test Data
+main.py:481: YAMLLoadWarning: calling yaml.load() without Loader=... is deprecated, as the default Loader is unsafe. Please read https://msg.pyyaml.org/load for full details.
+  yaml_dict = yaml.load(f)
 Traceback (most recent call last):
-  File "main.py", line 10, in <module>
-    from mcan.net import Net
-  File "/home/qzhb/dorren/VQA_Experiment/VQA_Experiment_v2/mcan/net.py", line 8, in <module>
-    from mcan.mca import MCA_ED
-  File "/home/qzhb/dorren/VQA_Experiment/VQA_Experiment_v2/mcan/mca.py", line 7, in <module>
-    from core.model.net_utils import FC, MLP, LayerNorm
-ModuleNotFoundError: No module named 'core'
+  File "main.py", line 527, in <module>
+    main()
+  File "main.py", line 484, in main
+    net = Net(__C, config.d.ntoken, config.num_classes)
+  File "/home/qzhb/dorren/VQA_Experiment/VQA_Experiment_v2/mcan/net.py", line 70, in __init__
+    self.init_embedding("data/glove6b_init_300d_TDIUC.npy", token_size, emb_dim)
+NameError: name 'emb_dim' is not defined
 Error processing line 1 of /home/qzhb/anaconda3/lib/python3.7/site-packages/movienet-tools-nspkg.pth:
 
   Traceback (most recent call last):
@@ -33,19 +42,13 @@ Loading Train Data !
 Filtering Train Data !
 Loading Test Data
 Filtering Test Data
+main.py:481: YAMLLoadWarning: calling yaml.load() without Loader=... is deprecated, as the default Loader is unsafe. Please read https://msg.pyyaml.org/load for full details.
+  yaml_dict = yaml.load(f)
 Traceback (most recent call last):
-  File "main.py", line 520, in <module>
+  File "main.py", line 527, in <module>
     main()
-  File "main.py", line 479, in main
-    net = Net(__C, config.d.ntoken, config.emb_dim)
-  File "/home/qzhb/dorren/VQA_Experiment/VQA_Experiment_v2/mcan/net.py", line 83, in __init__
-    self.backbone = MCA_ED(__C)
-  File "/home/qzhb/dorren/VQA_Experiment/VQA_Experiment_v2/mcan/mca.py", line 175, in __init__
-    self.enc_list = nn.ModuleList([SA(__C) for _ in range(__C.LAYER)])
-  File "/home/qzhb/dorren/VQA_Experiment/VQA_Experiment_v2/mcan/mca.py", line 175, in <listcomp>
-    self.enc_list = nn.ModuleList([SA(__C) for _ in range(__C.LAYER)])
-  File "/home/qzhb/dorren/VQA_Experiment/VQA_Experiment_v2/mcan/mca.py", line 110, in __init__
-    self.ffn = FFN(__C)
-  File "/home/qzhb/dorren/VQA_Experiment/VQA_Experiment_v2/mcan/mca.py", line 91, in __init__
-    mid_size=__C.FF_SIZE,
-AttributeError: 'Cfgs' object has no attribute 'FF_SIZE'
+  File "main.py", line 484, in main
+    net = Net(__C, config.d.ntoken, config.num_classes)
+  File "/home/qzhb/dorren/VQA_Experiment/VQA_Experiment_v2/mcan/net.py", line 70, in __init__
+    self.init_embedding("data/glove6b_init_300d_TDIUC.npy", token_size, __C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE__C.WORD_EMBED_SIZE)
+AttributeError: 'Cfgs' object has no attribute 'WORD_EMBED_SIZE__C'

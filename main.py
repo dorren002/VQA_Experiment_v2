@@ -480,18 +480,16 @@ def main():
             with open(cfg_file, 'r') as f:
                 yaml_dict = yaml.load(f)
 
-            args_dict = {**yaml_dict, **args_dict}
-            __C.add_args(args_dict)
             __C.proc()
-            net = Net(__C, config.d.ntoken, config.emb_dim)
+            net = Net(__C, config.d.ntoken, config.num_classes)
         net_running = None
         print(net)
         net.cuda()
 
         start_epoch = 0
 
-        net.ques_encoder.embedding.init_embedding('data/glove6b_init_300d_{}.npy'
-                                                  .format(config.dataset))
+       # net.ques_encoder.embedding.init_embedding('data/glove6b_init_300d_{}.npy'
+                                                 # .format(config.dataset))
 
         if args.lr is not None:
             print(f'Using lr specified in args {args.lr}')
@@ -511,6 +509,8 @@ def main():
 
         print('TRAINING')
         print(f'CURRENT TIME ====== {time.asctime( time.localtime(time.time()))}')
+
+
 
         if args.offline:
             training_loop(config, net, train_data, val_data, optimizer, criterion, config.expt_dir, net_running, start_epoch)

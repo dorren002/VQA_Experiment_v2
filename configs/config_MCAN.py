@@ -18,7 +18,7 @@ class Cfgs(PATH):
 
         # Set Devices
         # If use multi-gpu training, set e.g.'0, 1, 2' instead
-        # self.GPU = '0'
+        self.GPU = '0'
 
         # Set RNG For CPU And GPUs
         self.SEED = random.randint(0, 99999999)
