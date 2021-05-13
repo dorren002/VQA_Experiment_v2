@@ -8,13 +8,14 @@ import json
 
 print("Starting the encoding process...")
 # Change these based on data set
-PATH = '/home/qzhb/dorren/CL4VQA/TDIUC'  # Change this
-streaming_type = 'iid'  # Change this
+PATH = '/home/qzhb/dorren/VQA_Experiment/data/TDIUC'  # Change this
+FEAT_PATH = '/media/qzhb/DATA1/yi/dorren'
+streaming_type = 'qtype'  # Change this
 
 # Probably don't need to be changed
-feat_name = f'{PATH}/tdiuc_resnet_256'
-train_filename = f'{PATH}/tdiuc_256.h5'
-lut_name = f'{PATH}/map_tdiuc_resnet_256.json'
+feat_name = f'{FEAT_PATH}/all_TDIUC_features'
+train_filename = f'{PATH}/train_TDIUC.h5'
+lut_name = f'{PATH}/map_TDIUC_features.json'
 
 feat_dim = 2048
 num_feat_maps = 49 
@@ -50,7 +51,7 @@ print('Encoding, Decoding and saving Reconstructed Features')
 feats = feat_h5['image_features']
 start = 0
 batch = 10000 
-reconstructed_h5 = h5py.File(f'{feat_name}pq_{streaming_type}.h5', 'w')
+reconstructed_h5 = h5py.File(f'{feat_name}_pq_{streaming_type}.h5', 'w')
 reconstructed_h5.create_dataset('image_features', shape=feats.shape, dtype=np.float32)
 
 while start < len(feats):

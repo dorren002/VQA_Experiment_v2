@@ -503,7 +503,7 @@ def main():
 
         if args.offline:
             training_loop(config, net, train_data, val_data, optimizer, criterion, config.expt_dir, net_running, start_epoch)
-        if args.icarl and args.offline:
+        elif args.icarl and args.offline:
             train_icarl_manner(config, net, train_data, val_data, optimizer, criterion, config.expt_dir, net_running)
         elif config.max_epochs>0:
             train_base_init(config, net, train_data, val_data, optimizer, criterion, args.expt_name, net_running)
