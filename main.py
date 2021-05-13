@@ -392,10 +392,23 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
 
                 Qs, Im, Ql, Ai = Qs.unsqueeze(0), Im.unsqueeze(0), Ql.unsqueeze(0), Ai.unsqueeze(0)
                 if index > 0:
-                    Q_r, Qs_r, Im_r, Qid_r, Iid_r, Ai_r, Tai_r, Ql_r, _ = next(rehearsal_data_iter)
+                    Q_r, Qs_r, Im_r, Qid_r, Iid_r, Ai_r, Tai_r, Ql_r, _ = rehearsal_data
                     Qs_merged, Im_merged, Ql_merged, Ai_merged = merge_data(Qs, Im, Ql, Ai, Qs_r, Im_r, Ql_r, Ai_r)
                 else:
                     Qs_merged, Im_merged, Ql_merged, Ai_merged = Qs, Im, Ql, Ai
+
+                p = net(Qs_merged, Im_merged, Ql_merged)
+                loss = criterion(p, Ai_merged)
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                if iter_cnt in boundaries:
+                    print('\n\nBoundary {} reached, evaluating...'.format(iter_cnt))
+                    predict(eval_net, test_data, 'NA', config.expt_dir, config, iter_cnt)
+
+                    net.train()
+                index += 1
+            inline_print('Processed {0} of {1}'.format(iter_cnt, len(data) * data.batch_size))
 
 
 
@@ -490,12 +503,11 @@ def main():
 
         if args.offline:
             training_loop(config, net, train_data, val_data, optimizer, criterion, config.expt_dir, net_running, start_epoch)
-        if args.icarl:
+        if args.icarl and args.offline:
             train_icarl_manner(config, net, train_data, val_data, optimizer, criterion, config.expt_dir, net_running)
         elif config.max_epochs>0:
             train_base_init(config, net, train_data, val_data, optimizer, criterion, args.expt_name, net_running)
-
-        # stream(net, train_data, val_data, optimizer, criterion, config, net_running)
+            stream(net, train_data, val_data, optimizer, criterion, config, net_running)
         print('FINISHED')
         print(f'CURRENT TIME ====== {time.asctime(time.localtime(time.time()))}')
 
