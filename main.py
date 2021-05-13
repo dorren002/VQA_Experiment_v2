@@ -7,7 +7,9 @@ import torch
 import numpy as np
 
 from vqa_model import UpDown_CNN_frozed, UpDown
+from mcan.net import Net
 import configs.config_TDIUC_streaming as config
+from configs.config_MCAN import Cfgs
 from vqa_dataloader import build_dataloaders, build_base_init_dataloader, build_rehearsal_dataloader_with_limited_buffer, build_icarl_rehearsal_dataloaders, build_icarl_dataloader
 
 
@@ -472,7 +474,9 @@ def main():
         if args.remind_original_data:
             net = UpDown(config)
         else:
-            net = UpDown_CNN_frozed(config)
+            # net = UpDown_CNN_frozed(config)
+            __C=Cfgs()
+            net = Net(__C, config.d.ntoken, config.emb_dim)
         net_running = None
         print(net)
         net.cuda()
