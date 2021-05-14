@@ -8,12 +8,13 @@ DATA_ORDER=qtype
 expt=${CONFIG}_${DATA_ORDER}_${lr}
 MODE=limited_buffer
 BUFFERSIZE=10000
-
+NETWORK=mcan
 
 CUDA_VISIBLE_DEVICES=0 nohup python -u main.py \
 --config_name ${CONFIG} \
 --expt_name ${expt} \
 --offline \
+--network ${NETWORK} \
 --lr ${lr} &> ../logs/${expt}.log &
 
 #DATA_ORDER=qtype # or qtype
