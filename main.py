@@ -22,6 +22,7 @@ parser.add_argument('--config_name', required=True, type=str)
 parser.add_argument('--expt_name', required=True, type=str)
 
 parser.add_argument('--full', action='store_true')
+parser.add_argument('--network', type=str, choices=['san','mcan'],default='san')
 
 parser.add_argument('--offline', action='store_true')
 parser.add_argument('--stream', action="store_true")
@@ -48,68 +49,118 @@ def assert_expt_name_not_present(expt_dir):
 def inline_print(text):
     print('\r' + text, end="")
 
-def train_epoch(net, criterion, optimizer, data, epoch, net_running):
+def train_epoch(net, criterion, optimizer, data, epoch, __C):
     net.train()
     total,total_loss = 0,0
     correct, correct_vqa = 0,0
-    for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
-        if config.soft_targets:
-            aidx = aidx.cuda()
-        else:
-            aidx = aidx.long().cuda()
+    if args.network == 'san':
+        for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
+            optimizer.zero_grad()
+            if config.soft_targets:
+                aidx = aidx.cuda()
+            else:
+                aidx = aidx.long().cuda()
 
-        qlen = qlen.cuda()
-        q = qseq.cuda()
-
-        if args.remind_original_data:
-            im = image.cuda()
-            p = net(q, im, qlen)
-        else:
+            qlen = qlen.cuda()
+            q = qseq.cuda()
             imfeat = imfeat.cuda()
             p = net(q, imfeat, qlen)
 
-        loss = criterion(p, aidx)
-        total_loss += loss*len(qid)
-        _, idx = p.max(dim=1)
+            loss = criterion(p, aidx)
+            _, idx = p.max(dim=1)
 
-        if config.soft_targets:
-            loss *= config.num_classes
-        else:
-            exact_match = torch.sum(idx==aidx.long().cuda()).item()
-            correct += exact_match
+            if config.soft_targets:
+                loss *= config.num_classes
+            else:
+                exact_match = torch.sum(idx==aidx.long().cuda()).item()
+                correct += exact_match
 
-        total += len(qid)
-        _, idx = p.max(dim=1, keepdim=True)
-        ten_idx = ten_aidx.long().cuda()
-        agreeing = torch.sum(ten_idx == idx, dim=1)
-        vqa_score = torch.sum((agreeing.type(torch.float32)*0.3).clamp(max=1))
-        correct_vqa += vqa_score.item()
+            total += len(qid)
+            _, idx = p.max(dim=1, keepdim=True)
+            ten_idx = ten_aidx.long().cuda()
+            agreeing = torch.sum(ten_idx == idx, dim=1)
+            vqa_score = torch.sum((agreeing.type(torch.float32)*0.3).clamp(max=1))
+            correct_vqa += vqa_score.item()
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        inline_print('Processed {0} of {1}, Loss:{2:.4f} Accuracy: {3:.4f}, VQA Accuracy: {4:.4f}'.format(
-            total,
-            len(data.dataset),
-            total_loss / total,
-            correct / total,
-            correct_vqa / total))
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            inline_print('Processed {0} of {1}, Loss:{2:.4f} Accuracy: {3:.4f}, VQA Accuracy: {4:.4f}'.format(
+                total,
+                len(data.dataset),
+                total_loss / total,
+                correct / total,
+                correct_vqa / total))
 
-        assert vqa_score <= len(qid)
-        assert len(qid) <= data.batch_size
+            assert vqa_score <= len(qid)
+            assert len(qid) <= data.batch_size
 
-    epoch_acc = correct / total
-    epoch_vqa_acc = correct_vqa / total
-    print('Epoch {}, Accuracy: {}'.format(epoch, epoch_acc))
-    print('Epoch {}, VQA Accuracy: {}\n'.format(epoch, epoch_vqa_acc))
-    return epoch_acc, epoch_vqa_acc
+        epoch_acc = correct / total
+        epoch_vqa_acc = correct_vqa / total
+        print('Epoch {}, Accuracy: {}'.format(epoch, epoch_acc))
+        print('Epoch {}, VQA Accuracy: {}\n'.format(epoch, epoch_vqa_acc))
+        return epoch_acc, epoch_vqa_acc
+    elif args.network == 'mcan':
+        named_params = list(net.named_parameters())
+        grad_norm = np.zeros(len(named_params))
+        for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
+            if config.soft_targets:
+                aidx = aidx.cuda()
+            else:
+                aidx = aidx.long().cuda()
 
+            q = qseq.cuda()
+            imfeat = imfeat.cuda()
+            p = net(q, imfeat)
 
-def training_loop(config, net, train_data, val_data, optimizer, criterion, expt_name, net_running, start_epoch=0):
+            loss = criterion(p, aidx)
+            loss.backward()
+
+            loss_sum += loss.cpu().data.numpy() * __C.GRAD_ACCU_STEPS
+
+            if __C.GRAD_NORM_CLIP > 0:
+                torch.nn.utils.clip_grad_norm_(
+                    net.parameters(),
+                    __C.GRAD_NORM_CLIP
+                )
+
+            _, idx = p.max(dim=1)
+
+            if config.soft_targets:
+                loss *= config.num_classes
+            else:
+                exact_match = torch.sum(idx == aidx.long().cuda()).item()
+                correct += exact_match
+
+            _, idx = p.max(dim=1, keepdim=True)
+            ten_idx = ten_aidx.long().cuda()
+            agreeing = torch.sum(ten_idx == idx, dim=1)
+            vqa_score = torch.sum((agreeing.type(torch.float32) * 0.3).clamp(max=1))
+            correct_vqa += vqa_score.item()
+
+            inline_print('Processed {0} of {1}, Loss:{2:.4f} Accuracy: {3:.4f}, VQA Accuracy: {4:.4f}'.format(
+                total,
+                len(data.dataset),
+                total_loss / total,
+                correct / total,
+                correct_vqa / total))
+
+            assert vqa_score <= len(qid)
+            assert len(qid) <= data.batch_size
+            loss_sum = 0
+            grad_norm = np.zeros(len(named_params))
+
+        epoch_acc = correct / total
+        epoch_vqa_acc = correct_vqa / total
+        print('Epoch {}, Accuracy: {}'.format(epoch, epoch_acc))
+        print('Epoch {}, VQA Accuracy: {}\n'.format(epoch, epoch_vqa_acc))
+        return epoch_acc, epoch_vqa_acc
+
+def training_loop(config, net, train_data, val_data, optimizer, criterion, expt_name, net_running, start_epoch=0, __C=None):
     eval_net = net_running if config.use_exponential_averaging else net
     for epoch in range(start_epoch, config.max_epochs):
         epoch = epoch + 1
-        acc, vqa_acc = train_epoch(net, criterion, optimizer, train_data, epoch, net_running)
+        acc, vqa_acc = train_epoch(net, criterion, optimizer, train_data, epoch, __C=__C)
 
         if epoch%config.test_interval == 0:
             acc, vqa_acc = predict(eval_net, val_data, epoch, config.expt_dir, config)
@@ -129,12 +180,8 @@ def predict(eval_net, data, epoch, expt_name , config, iter_cnt=None):
         qlen = qlen.cuda()
         q = qseq.cuda()
 
-        if args.remind_original_data:
-            im = image.cuda()
-            p = eval_net(q, im, qlen)
-        else:
-            imfeat = imfeat.cuda()
-            p = eval_net(q, imfeat, qlen)
+        imfeat = imfeat.cuda()
+        p = eval_net(q, imfeat, qlen)
 
         _, idx = p.max(dim=1)
 
@@ -471,25 +518,22 @@ def main():
 
         train_data, val_data = build_dataloaders(config, data_type, mem_feat)
 
-        if args.remind_original_data:
-            net = UpDown(config)
+        if args.network == 'mcan':
+            __C=Cfgs()
+            cfg_file = "configs/small_model.yml"
+            with open(cfg_file, 'r') as f:
+               yaml_dict = yaml.load(f)
+            __C.proc()
+            net = Net(__C, config.d.ntoken, config.num_classes)
         else:
             net = UpDown_CNN_frozed(config)
-            #__C=Cfgs()
-            #cfg_file = "configs/small_model.yml"
-            #with open(cfg_file, 'r') as f:
-            #    yaml_dict = yaml.load(f)
-
-            #__C.proc()
-            #net = Net(__C, config.d.ntoken, config.num_classes)
+            net.ques_encoder.embedding.init_embedding('data/glove6b_init_300d_{}.npy'
+                                                      .format(config.dataset))
         net_running = None
         print(net)
         net.cuda()
 
         start_epoch = 0
-
-        net.ques_encoder.embedding.init_embedding('data/glove6b_init_300d_{}.npy'
-                                                  .format(config.dataset))
 
         if args.lr is not None:
             print(f'Using lr specified in args {args.lr}')
@@ -499,8 +543,8 @@ def main():
 
         optimizer = config.optimizer([p for p in net.parameters() if p.requires_grad==True], lr=config.lr)
 
-        if config.soft_targets:
-            criterion = torch.nn.BCEWithLogitsLoss()
+        if args.network == 'mcan' or config.soft_targets:
+            criterion = torch.nn.BCELoss(reduction='sum')
         else:
             criterion = torch.nn.CrossEntropyLoss()
 

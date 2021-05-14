@@ -96,7 +96,7 @@ class Net(nn.Module):
         assert weight_init.shape == (ntoken, emb_dim)
         self.embedding.weight.data[:ntoken] = weight_init
 
-    def forward(self, ques_ix, img_feat, ql):
+    def forward(self, ques_ix, img_feat):
 
         # Make mask
         lang_feat_mask = self.make_mask(ques_ix.unsqueeze(2))
