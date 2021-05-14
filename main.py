@@ -112,6 +112,9 @@ def train_epoch(net, criterion, optimizer, data, epoch, __C):
             q = qseq.cuda()
             imfeat = imfeat.cuda()
             p = net(q, imfeat)
+            
+            print("p", p.shape)
+            print("ans", aidx.shape)
 
             loss = criterion(p, aidx)
             loss.backward()
