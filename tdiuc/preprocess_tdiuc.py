@@ -9,7 +9,7 @@ DATASET = 'TDIUC'
 annotations = dict()
 
 for split in ['train', 'val']:
-    with open(f'{PATH}/{DATASET}/Annotations/{split}_{DATASET}_annotations_sorted.json')as f:
+    with open(f'{PATH}/{DATASET}/Annotations/{split}_{DATASET}_annotations.json')as f:
         annotations[split] = json.load(f)['annotations']
 meta = defaultdict(list)
 
@@ -43,7 +43,7 @@ for split in ['train', 'val']:
     qid2idx = {qid: idx for idx, qid in enumerate(qids)}
     num_instances = len(annotations[split])
 
-    h5file = h5py.File(f'{PATH}/{DATASET}/{split}_{DATASET}_sorted.h5', 'w')
+    h5file = h5py.File(f'{PATH}/{DATASET}/{split}_{DATASET}.h5', 'w')
     h5file.create_dataset('qfeat', (num_instances, 2048), dtype=np.float32)
     h5file.create_dataset('qid', (num_instances,), dtype=np.int64)
     h5file.create_dataset('iid', (num_instances,), dtype=np.int64)

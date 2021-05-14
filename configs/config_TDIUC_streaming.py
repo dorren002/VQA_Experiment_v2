@@ -21,9 +21,9 @@ train_file = f'{data_path}/train_{dataset}.h5'
 val_file = f'{data_path}/val_{dataset}.h5'
 icarl_rehearsal_file = f'{data_path}/icarl_rehearsal_{dataset}.h5'
 
-train_batch_size = 512
-val_batch_size = 512
-num_classes = 218  # 1480  # Number of classifier units 1480 for TDIUC, 31xx for VQA,28 for CLEVR
+train_batch_size = 128 
+val_batch_size = 128
+num_classes = 188  # 1480  # Number of classifier units 1480 for TDIUC, 31xx for VQA,28 for CLEVR
 
 train_on = 'full'
 test_on = 'full'  # 'full' or 'valid'
@@ -53,7 +53,7 @@ use_lstm = True
 
 # Training
 overwrite_expt_dir = True  # Set to True during dev phase
-max_epochs = 40 
+max_epochs = 300 
 test_interval = 8
 
 # Model

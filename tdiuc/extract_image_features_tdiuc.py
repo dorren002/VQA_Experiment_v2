@@ -61,7 +61,7 @@ def path2iid(path):
 
 def main(args):
     args.output_h5_file = args.path + f"/all_{args.dataset}_features.h5"
-    p1 = f"{args.path}/{args.dataset}/Images/train"
+    p1 = f"{args.path}/{args.dataset}/Images/train_mcan"
     input_paths = [os.path.join(p1, a) for a in os.listdir(p1)]
     p1 = f'{args.path}/{args.dataset}/Images/val'
     input_paths.extend([os.path.join(p1, a) for a in os.listdir(p1)])

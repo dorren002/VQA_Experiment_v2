@@ -60,7 +60,7 @@ class AttFlat(nn.Module):
 # -------------------------
 
 class Net(nn.Module):
-    def __init__(self, __C, pretrained_emb, token_size, answer_size):
+    def __init__(self, __C, token_size, answer_size):
         super(Net, self).__init__()
 
         self.embedding = nn.Embedding(
@@ -94,7 +94,7 @@ class Net(nn.Module):
     def init_embedding(self, np_file, ntoken, emb_dim):
         weight_init = torch.from_numpy(np.load(np_file))
         assert weight_init.shape == (ntoken, emb_dim)
-        self.emb.weight.data[:ntoken] = weight_init
+        self.embedding.weight.data[:ntoken] = weight_init
 
     def forward(self, ques_ix, img_feat, ql):
 
