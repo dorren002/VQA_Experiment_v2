@@ -6,6 +6,7 @@ from tqdm import tqdm
 
 PATH = '/home/qzhb/dorren/VQA_Experiment/data'
 DATASET = 'TDIUC'
+cnum = 188
 annotations = dict()
 
 for split in ['train', 'val']:
@@ -55,6 +56,7 @@ for split in ['train', 'val']:
     h5file.create_dataset('atypeidx', (num_instances,), dtype=np.int32)
     h5file.create_dataset('qtypeidx', (num_instances,), dtype=np.int32)
     h5file.create_dataset('mfeat', (num_instances,), dtype=np.float32)
+    h5file.create_dataset('cnumaidx', (num_instances,cnum), dtype=np.float32)
 
     for idx, ann in enumerate(tqdm(annotations[split])):
         qid = ann['question_id']
@@ -63,6 +65,8 @@ for split in ['train', 'val']:
         ten_ans = [a['answer'] for a in ann['answers']] * 10
         ans = ten_ans[0]
         aidx = lut['a2idx'].get(ans, -1) # 没有就是-1   answerid
+        vector = np.array([0]*cnum)
+        vector[lut['a2idx'].get(ans,-1)] = 1
         ten_aidx = np.array([lut['a2idx'].get(a, -1) for a in ten_ans])
         atypeidx = lut['atype2idx'].get('answer_type', -1)
         qtypeidx = lut['qtype2idx'].get(ann['question_type'], -1)
@@ -76,4 +80,5 @@ for split in ['train', 'val']:
         h5file['atypeidx'][idx] = atypeidx
         h5file['qtypeidx'][idx] = qtypeidx
         h5file['ten_aidx'][idx] = ten_aidx
+        h5file['cnumaidx'][idx] = vector
     h5file.close()

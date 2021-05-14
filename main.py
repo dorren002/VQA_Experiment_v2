@@ -54,7 +54,7 @@ def train_epoch(net, criterion, optimizer, data, epoch, __C):
     total,total_loss = 0,0
     correct, correct_vqa = 0,0
     if args.network == 'san':
-        for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
+        for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, cnum, mfeat in data:
             optimizer.zero_grad()
             if config.soft_targets:
                 aidx = aidx.cuda()
@@ -103,7 +103,7 @@ def train_epoch(net, criterion, optimizer, data, epoch, __C):
     elif args.network == 'mcan':
         named_params = list(net.named_parameters())
         grad_norm = np.zeros(len(named_params))
-        for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
+        for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, cnum, mfeat in data:
             if config.soft_targets:
                 aidx = aidx.cuda()
             else:
@@ -112,8 +112,9 @@ def train_epoch(net, criterion, optimizer, data, epoch, __C):
             q = qseq.cuda()
             imfeat = imfeat.cuda()
             p = net(q, imfeat)
+            cnum = cnum.cuda()
 
-            loss = criterion(p, aidx)
+            loss = criterion(p, cnum)
             loss.backward()
 
             loss_sum += loss.cpu().data.numpy() * __C.GRAD_ACCU_STEPS
@@ -124,28 +125,11 @@ def train_epoch(net, criterion, optimizer, data, epoch, __C):
                     __C.GRAD_NORM_CLIP
                 )
 
-            _, idx = p.max(dim=1)
-
-            if config.soft_targets:
-                loss *= config.num_classes
-            else:
-                exact_match = torch.sum(idx == aidx.long().cuda()).item()
-                correct += exact_match
-
-            _, idx = p.max(dim=1, keepdim=True)
-            ten_idx = ten_aidx.long().cuda()
-            agreeing = torch.sum(ten_idx == idx, dim=1)
-            vqa_score = torch.sum((agreeing.type(torch.float32) * 0.3).clamp(max=1))
-            correct_vqa += vqa_score.item()
-
-            inline_print('Processed {0} of {1}, Loss:{2:.4f} Accuracy: {3:.4f}, VQA Accuracy: {4:.4f}'.format(
+            inline_print('Processed {0} of {1}, Loss:{2:.4f}'.format(
                 total,
                 len(data.dataset),
-                total_loss / total,
-                correct / total,
-                correct_vqa / total))
+                total_loss / total))
 
-            assert vqa_score <= len(qid)
             assert len(qid) <= data.batch_size
             loss_sum = 0
             grad_norm = np.zeros(len(named_params))
@@ -176,52 +160,78 @@ def predict(eval_net, data, epoch, expt_name , config, iter_cnt=None):
 
     correct, correct_vqa, total = 0, 0, 0
     results = {}
-    for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
-        qlen = qlen.cuda()
-        q = qseq.cuda()
+    if args.netword == 'san':
+        for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, cnum, mfeat in data:
+            qlen = qlen.cuda()
+            q = qseq.cuda()
 
-        imfeat = imfeat.cuda()
-        p = eval_net(q, imfeat, qlen)
+            imfeat = imfeat.cuda()
+            p = eval_net(q, imfeat, qlen)
 
-        _, idx = p.max(dim=1)
+            _, idx = p.max(dim=1)
 
-        if config.soft_targets:
-            pass
+            if config.soft_targets:
+                pass
+            else:
+                exact_match = torch.sum(idx == aidx.long().cuda()).item()
+                correct += exact_match
+            total += len(qid)
+            _, idx = p.max(dim=1, keepdim=True)
+            ten_idx = ten_aidx.long().cuda()
+            agreeing = torch.sum(ten_idx == idx, dim=1)
+            vqa_score = torch.sum((agreeing.type(torch.float32) * 0.3).clamp(max=1))
+            correct_vqa += vqa_score.item()
+            inline_print('Processed {0:} of {1:}'.format(
+                total,
+                len(data) * data.batch_size, ))
+
+            for qqid, pred in zip(qid, idx):
+                qqid = str(qqid.item())
+                if qqid not in results:
+                    results[qqid] = int(pred.item())
+
+        if iter_cnt is None:
+            fname = 'results_{}_{}_{}_{}.json'.format(data.dataset.split, epoch, config.only_first_k["train"],
+                                                      config.data_subset)
         else:
-            exact_match = torch.sum(idx == aidx.long().cuda()).item()
+            fname = 'results_ep_{}_{}_{}_{}_iter_{}.json'.format(data.dataset.split, epoch, config.only_first_k["train"],
+                                                                 config.data_subset, iter_cnt)
+        rfile = os.path.join(expt_name, fname)
+        json.dump(results, open(rfile, 'w'))
+        compute_accuracy(config.data_path, config.dataset, results)
+        epoch_acc = correct / total
+        epoch_vqa_acc = correct_vqa / total
+        with open(os.path.join(expt_name, 'train_log.csv'), mode='a') as log:
+            log = csv.writer(log, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            log.writerow([config.only_first_k['train'], config.data_subset, epoch, epoch_acc, epoch_vqa_acc])
+
+        print("\n")
+        return epoch_acc, epoch_vqa_acc
+    elif args.network == 'mcan':
+        for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, cnum, mfeat in data:
+            q = qseq.cuda()
+
+            imfeat = imfeat.cuda()
+            pred = eval_net(q, imfeat)
+
+            pred_np = pred.cpu().data.numpy()
+            pred_argmax = np.argmax(pred_np, axis=1)
+
+            exact_match = torch.sum(pred_argmax == aidx.long().cuda()).item()
             correct += exact_match
-        total += len(qid)
-        _, idx = p.max(dim=1, keepdim=True)
-        ten_idx = ten_aidx.long().cuda()
-        agreeing = torch.sum(ten_idx == idx, dim=1)
-        vqa_score = torch.sum((agreeing.type(torch.float32) * 0.3).clamp(max=1))
-        correct_vqa += vqa_score.item()
-        inline_print('Processed {0:} of {1:}'.format(
-            total,
-            len(data) * data.batch_size, ))
 
-        for qqid, pred in zip(qid, idx):
-            qqid = str(qqid.item())
-            if qqid not in results:
-                results[qqid] = int(pred.item())
+            inline_print('Processed {0:} of {1:}'.format(
+                total,
+                len(data) * data.batch_size, ))
 
-    if iter_cnt is None:
-        fname = 'results_{}_{}_{}_{}.json'.format(data.dataset.split, epoch, config.only_first_k["train"],
-                                                  config.data_subset)
-    else:
-        fname = 'results_ep_{}_{}_{}_{}_iter_{}.json'.format(data.dataset.split, epoch, config.only_first_k["train"],
-                                                             config.data_subset, iter_cnt)
-    rfile = os.path.join(expt_name, fname)
-    json.dump(results, open(rfile, 'w'))
-    compute_accuracy(config.data_path, config.dataset, results)
-    epoch_acc = correct / total
-    epoch_vqa_acc = correct_vqa / total
-    with open(os.path.join(expt_name, 'train_log.csv'), mode='a') as log:
-        log = csv.writer(log, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        log.writerow([config.only_first_k['train'], config.data_subset, epoch, epoch_acc, epoch_vqa_acc])
+            for qqid, preded in zip(qid, pred_argmax):
+                qqid = str(qqid.item())
+                if qqid not in results:
+                    results[qqid] = int(preded.item())
 
-    print("\n")
-    return epoch_acc, epoch_vqa_acc
+        compute_accuracy(config.data_path, config.dataset, results)
+        epoch_acc = correct / total
+        return epoch_acc
 
 
 def save(net, optimizer, epoch, expt_dir, suffix):
@@ -333,7 +343,7 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
     iter_cnt, index = 0,0
     boundaries = get_boundaries(data, config)
 
-    for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat in data:
+    for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, cnum, mfeat in data:
         net.train()
         if args.stream:
             if iter_cnt == 0:

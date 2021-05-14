@@ -214,7 +214,7 @@ class VQAFeatsDataset(Dataset):
         qseq[:qlen] = torch.from_numpy(np.array(qtokens[:l-1])).long()
         aidx = dp['aidx']
 
-        return dp['idx'], qfeat, qseq, imfeat, dp['qid'], dp['iid'], aidx, dp['ten_aidx'], qlen, dp['mfeat']
+        return dp['idx'], qfeat, qseq, imfeat, dp['qid'], dp['iid'], aidx, dp['ten_aidx'], qlen, dp['cnumaidx'], dp['mfeat']
 
 
 def collate_batch(data_batch):

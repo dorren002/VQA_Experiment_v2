@@ -130,7 +130,6 @@ class Net(nn.Module):
         proj_feat = lang_feat + img_feat
         proj_feat = self.proj_norm(proj_feat)
         proj_feat = torch.sigmoid(self.proj(proj_feat))
-
         return proj_feat
 
 
