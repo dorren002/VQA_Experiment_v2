@@ -10,6 +10,7 @@ from vqa_model import UpDown_CNN_frozed, UpDown
 from mcan.net import Net
 import configs.config_TDIUC_streaming as config
 from configs.config_MCAN import Cfgs
+from MyDataLoader import MyDataLoader
 from vqa_dataloader import build_dataloaders, build_base_init_dataloader, build_rehearsal_dataloader_with_limited_buffer, build_icarl_rehearsal_dataloaders, build_icarl_dataloader
 
 
@@ -380,6 +381,51 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
 
         elif args.remind_original_data:
             pass
+        elif args.remind_features and args.sampling_method == 'MoF':
+            net.train()
+            if iter_cnt == 0:
+                print('\Building MoF Dataloader...')
+                print('Network will evaluate at: {}'.format(boundaries))
+                rehearsal_data = MyDataLoader(data.dataset, args.max_buffer_size, args.buffer_replacement_strategy)
+
+            for Ixs, Q, Qs, ImFeat, Qid, Iid, Ai, Tai, Ql, MFeat in zip(ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, mfeat):
+                iter_cnt += 1
+                Qs = Qs.cuda()
+                Ql = Ql.cuda()
+                Im = ImFeat.cuda()
+                Ai = Ai.long().cuda()  # 排序的answer id
+
+                if index<boundaries[0]:
+                    rehearsal_data.update_buffer(index, int(Ai),True)
+                    index += 1
+                    continue
+                else:
+                    rehearsal_data.update_buffer(index, int(Ai))
+
+                Qs, Im, Ql, Ai = Qs.unsqueeze(0), Im.unsqueeze(0), Ql.unsqueeze(0), Ai.unsqueeze(0)  # 当前的
+                if index > 0:
+                    ixs_r, Q_r, Qs_r, Im_r, Qid_r, Iid_r, Ai_r, Tai_r, Ql_r, cnum, _ = next(rehearsal_data_iter)
+                    # print(Im_r.shape)
+                    Qs_merged, Im_merged, Ql_merged, Ai_merged = merge_data(Qs, Im, Ql, Ai, Qs_r, Im_r, Ql_r, Ai_r)
+                else:
+                    Qs_merged, Im_merged, Ql_merged, Ai_merged = Qs, Im, Ql, Ai
+
+                # print('here')
+                p = net(Qs_merged, Im_merged, Ql_merged)
+                loss = criterion(p, Ai_merged)
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                if iter_cnt in boundaries:
+                    print('\n\nBoundary {} reached, evaluating...'.format(iter_cnt))
+                    predict(net, test_data, 'NA', config.expt_dir, config, iter_cnt)
+                    save(net, optimizer, 'NA', config.expt_dir, suffix='boundary_{}'.format(iter_cnt))
+                    net.train()
+                index += 1
+            inline_print('Processed {0} of {1}'.format(iter_cnt, len(data) * data.batch_size))
+
+
+
         elif args.remind_features or args.remind_compressed_features:
             net.train()
             # 初始化索引
@@ -436,7 +482,15 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
             inline_print('Processed {0} of {1}'.format(iter_cnt, len(data) * data.batch_size))
         elif args.icarl:
             net.train()
-            rehearsal_data = build_icarl_rehearsal_dataloaders(config, [])
+            rehearsal_dataset = build_icarl_rehearsal_dataloaders(config, [])
+            rehearsal_ixs = []
+
+            rehearsal_data = build_rehearsal_dataloader_with_limited_buffer(rehearsal_dataset,
+                                                                            rehearsal_ixs,
+                                                                            config.num_rehearsal_samples,
+                                                                            args.max_buffer_size,
+                                                                            config.buffer_replacement_strategy,
+                                                                            args.sampling_method)
             if iter_cnt == 0:
                 print('Training in iCaRL fashion...')
                 print(' Network will evaluate at: {}'.format(boundaries))
@@ -450,10 +504,15 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
                 if index < boundaries[0]:
                     index += 1
                     continue
+                if index in boundaries:
+                    for i in range(index):
+                        rehearsal_data.batch_sampler.update_buffer(i, iter_cnt)
+
+                rehearsal_data_iter = iter(rehearsal_data)
 
                 Qs, Im, Ql, Ai = Qs.unsqueeze(0), Im.unsqueeze(0), Ql.unsqueeze(0), Ai.unsqueeze(0)
                 if index > 0:
-                    Q_r, Qs_r, Im_r, Qid_r, Iid_r, Ai_r, Tai_r, Ql_r, _ = rehearsal_data
+                    ix_r, Q_r, Qs_r, Im_r, Qid_r, Iid_r, Ai_r, Tai_r, Ql_r, _, _ = rehearsal_data
                     Qs_merged, Im_merged, Ql_merged, Ai_merged = merge_data(Qs, Im, Ql, Ai, Qs_r, Im_r, Ql_r, Ai_r)
                 else:
                     Qs_merged, Im_merged, Ql_merged, Ai_merged = Qs, Im, Ql, Ai

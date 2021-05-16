@@ -7,6 +7,7 @@ from tqdm import tqdm
 PATH = '/home/qzhb/dorren/VQA_Experiment/data'
 DATASET = 'TDIUC'
 annotations = dict()
+cnum =188
 
 with open(f'{PATH}/{DATASET}/Annotations/icaral_rehearsal_annotations.json')as f:
     annotations["rehearsal"] = json.load(f)['annotations']
@@ -36,6 +37,7 @@ for split in ['rehearsal']:
     h5file.create_dataset('ten_aidx', (num_instances, 10), dtype=np.int32)
     h5file.create_dataset('atypeidx', (num_instances,), dtype=np.int32)
     h5file.create_dataset('qtypeidx', (num_instances,), dtype=np.int32)
+    h5file.create_dataset('cnumaidx', (num_instances,), dtype=np.int32)
     h5file.create_dataset('mfeat', (num_instances,), dtype=np.float32)
 
     for idx, ann in enumerate(tqdm(annotations[split])):
@@ -44,6 +46,8 @@ for split in ['rehearsal']:
         feat_idx = qid2idx[qid]
         ten_ans = [a['answer'] for a in ann['answers']] * 10
         ans = ten_ans[0]
+        vector = np.array([0] * cnum)
+        vector[lut['a2idx'].get(ans, -1)] = 1
         aidx = lut['a2idx'].get(ans, -1) # 没有就是-1   answerid
         ten_aidx = np.array([lut['a2idx'].get(a, -1) for a in ten_ans])
         atypeidx = lut['atype2idx'].get('answer_type', -1)
@@ -58,4 +62,5 @@ for split in ['rehearsal']:
         h5file['atypeidx'][idx] = atypeidx
         h5file['qtypeidx'][idx] = qtypeidx
         h5file['ten_aidx'][idx] = ten_aidx
+        h5file['cnumaidx'][idx] = vector
     h5file.close()

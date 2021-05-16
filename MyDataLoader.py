@@ -147,10 +147,9 @@ class MySampler():
 
 
 class MyDataLoader():
-    def __init__(self, dataset, max_buffer_size, num_rehearsal_samples, buffer_replacement_strategy):
+    def __init__(self, dataset, max_buffer_size, buffer_replacement_strategy):
         self.dataset = dataset
         self.max_buffer_size = max_buffer_size
-        self.num_rehearsal_samples = num_rehearsal_samples
         self.buffer_replacement_strategy = buffer_replacement_strategy
 
         self.per_class_rehearsal_ixs = {}  # "class"：[ixs]
@@ -158,7 +157,7 @@ class MyDataLoader():
         self.class_lens = {}  # "class": len(ixs)
         self.total_len = 0
         self.device = 'cuda'
-        self.cur_ix = 0
+        self.MoF = []
 
     def find_class_having_max_samples(self):
         max_class = None
@@ -179,7 +178,7 @@ class MyDataLoader():
         self.class_lens[max_class] -= 1
         self.total_len -= 1
 
-    def update_buffer(self, new_ix, class_id):
+    def update_buffer(self, new_ix, class_id, Baseinit=False):
         new_ix = int(new_ix)
         class_id = int(class_id)
         if self.total_len >= self.buffer_size:
@@ -189,19 +188,19 @@ class MyDataLoader():
             self.class_lens[class_id] = 0
         self.class_lens[class_id] += 1
         self.per_class_rehearsal_ixs[class_id].append(new_ix)
-
-        self.cur_ix = new_ix
+        if not Baseinit:
+            self.update_Mean_of_Features()
         self.total_len += 1
 
-    def Mean_of_Features(self):
+    def update_Mean_of_Features(self):
         keys = list(self.class_lens.keys())
-        Mf = []
+        Mf=[]
         for key in keys:
             mf = torch.mean([self.dataset[self.per_class_rehearsal_ixs[key]] for key in keys])
             Mf.append({key: mf})
+        self.MoF = Mf
 
-        return Mf
 
     def __iter__(self, param=None):
         while True:
-            return self.Mean_of_Features()
+            return self.MoF
