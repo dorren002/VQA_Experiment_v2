@@ -101,14 +101,10 @@ def train_epoch(net, criterion, optimizer, data, epoch, __C):
         print('Epoch {}, VQA Accuracy: {}\n'.format(epoch, epoch_vqa_acc))
         return epoch_acc, epoch_vqa_acc
     elif args.network == 'mcan':
+        loss_sum = 0
         named_params = list(net.named_parameters())
         grad_norm = np.zeros(len(named_params))
         for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, cnum, mfeat in data:
-            if config.soft_targets:
-                aidx = aidx.cuda()
-            else:
-                aidx = aidx.long().cuda()
-
             q = qseq.cuda()
             imfeat = imfeat.cuda()
             p = net(q, imfeat)
@@ -124,11 +120,16 @@ def train_epoch(net, criterion, optimizer, data, epoch, __C):
                     net.parameters(),
                     __C.GRAD_NORM_CLIP
                 )
-
-            inline_print('Processed {0} of {1}, Loss:{2:.4f}'.format(
+            total+=len(qid)
+            p_np = p.cpu().data.numpy()
+            p_argmax = np.argmax(p_np, axis=1)
+            exact_match = np.sum(p_argmax == np.array(aidx))
+            correct += exact_match
+            inline_print('Processed {0} of {1}, Loss:{2:.4f}, Accuracy:{3:.4f}'.format(
                 total,
                 len(data.dataset),
-                total_loss / total))
+                total_loss / total,
+                correct/ total))
 
             assert len(qid) <= data.batch_size
             loss_sum = 0
@@ -160,7 +161,7 @@ def predict(eval_net, data, epoch, expt_name , config, iter_cnt=None):
 
     correct, correct_vqa, total = 0, 0, 0
     results = {}
-    if args.netword == 'san':
+    if args.network == 'san':
         for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, cnum, mfeat in data:
             qlen = qlen.cuda()
             q = qseq.cuda()
@@ -217,8 +218,9 @@ def predict(eval_net, data, epoch, expt_name , config, iter_cnt=None):
             pred_np = pred.cpu().data.numpy()
             pred_argmax = np.argmax(pred_np, axis=1)
 
-            exact_match = torch.sum(pred_argmax == aidx.long().cuda()).item()
+            exact_match = np.sum(pred_argmax == np.array(aidx))
             correct += exact_match
+            total += len(qid)
 
             inline_print('Processed {0:} of {1:}'.format(
                 total,
@@ -231,7 +233,7 @@ def predict(eval_net, data, epoch, expt_name , config, iter_cnt=None):
 
         compute_accuracy(config.data_path, config.dataset, results)
         epoch_acc = correct / total
-        return epoch_acc
+        return epoch_acc, None
 
 
 def save(net, optimizer, epoch, expt_dir, suffix):
@@ -378,7 +380,7 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
 
         elif args.remind_original_data:
             pass
-        elif args.remind_features:
+        elif args.remind_features or args.remind_compressed_features:
             net.train()
             # 初始化索引
             if iter_cnt == 0:
@@ -413,7 +415,7 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
 
                 Qs, Im, Ql, Ai = Qs.unsqueeze(0), Im.unsqueeze(0), Ql.unsqueeze(0), Ai.unsqueeze(0)  # 当前的
                 if index > 0:
-                    Q_r, Qs_r, Im_r, Qid_r, Iid_r, Ai_r, Tai_r, Ql_r, _ = next(rehearsal_data_iter)
+                    ixs_r, Q_r, Qs_r, Im_r, Qid_r, Iid_r, Ai_r, Tai_r, Ql_r, cnum, _ = next(rehearsal_data_iter)
                     # print(Im_r.shape)
                     Qs_merged, Im_merged, Ql_merged, Ai_merged = merge_data(Qs, Im, Ql, Ai, Qs_r, Im_r, Ql_r, Ai_r)
                 else:
@@ -427,8 +429,8 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
                 optimizer.step()
                 if iter_cnt in boundaries:
                     print('\n\nBoundary {} reached, evaluating...'.format(iter_cnt))
-                    predict(eval_net, test_data, 'NA', config.expt_dir, config, iter_cnt)
-                    #    save(eval_net, optimizer, 'NA', config.expt_dir, suffix='boundary_{}'.format(iter_cnt))
+                    predict(net, test_data, 'NA', config.expt_dir, config, iter_cnt)
+                    save(net, optimizer, 'NA', config.expt_dir, suffix='boundary_{}'.format(iter_cnt))
                     net.train()
                 index += 1
             inline_print('Processed {0} of {1}'.format(iter_cnt, len(data) * data.batch_size))
@@ -476,7 +478,7 @@ def main():
     dtset = config.dataset
     # 训练集路径
     if args.remind_compressed_features:
-        config.feat_path = f'{config.data_path}/all_{dtset}_pq_{args.data_order}.h5'
+        config.feat_path = f'/media/qzhb/DATA1/yi/dorren/all_{dtset}_features_pq_{args.data_order}.h5'
     else:
         config.feat_path = f'/media/qzhb/DATA1/yi/dorren/all_{dtset}_features.h5'
 
@@ -566,10 +568,10 @@ def main():
 
 
 
-        if args.offline:
-            training_loop(config, net, train_data, val_data, optimizer, criterion, config.expt_dir, net_running, start_epoch)
-        elif args.icarl and args.offline:
+        if args.offline and args.icarl:
             train_icarl_manner(config, net, train_data, val_data, optimizer, criterion, config.expt_dir, net_running)
+        elif args.offline:
+            training_loop(config, net, train_data, val_data, optimizer, criterion, config.expt_dir, net_running, start_epoch, __C=__C)
         elif config.max_epochs>0:
             train_base_init(config, net, train_data, val_data, optimizer, criterion, args.expt_name, net_running)
             stream(net, train_data, val_data, optimizer, criterion, config, net_running)
