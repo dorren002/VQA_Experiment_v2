@@ -15,7 +15,7 @@ Loading Train Data !
 Filtering Train Data !
 Loading Test Data
 Filtering Test Data
-main.py:525: YAMLLoadWarning: calling yaml.load() without Loader=... is deprecated, as the default Loader is unsafe. Please read https://msg.pyyaml.org/load for full details.
+main.py:537: YAMLLoadWarning: calling yaml.load() without Loader=... is deprecated, as the default Loader is unsafe. Please read https://msg.pyyaml.org/load for full details.
   yaml_dict = yaml.load(f)
 Net(
   (embedding): Embedding(9318, 300)
@@ -402,447 +402,18 @@ Using lr specified in args 0.002
     "stream": false
 }
 TRAINING
-CURRENT TIME ====== Fri May 14 21:08:21 2021
-/home/qzhb/anaconda3/lib/python3.7/site-packages/torch/nn/modules/loss.py:516: UserWarning: Using a target size (torch.Size([128])) that is different to the input size (torch.Size([128, 188])) is deprecated. Please ensure they have the same size.
-  return F.binary_cross_entropy(input, target, weight=self.weight, reduction=self.reduction)
-Traceback (most recent call last):
-  File "main.py", line 571, in <module>
-    main()
-  File "main.py", line 560, in main
-    training_loop(config, net, train_data, val_data, optimizer, criterion, config.expt_dir, net_running, start_epoch)
-  File "main.py", line 163, in training_loop
-    acc, vqa_acc = train_epoch(net, criterion, optimizer, train_data, epoch, __C=__C)
-  File "main.py", line 116, in train_epoch
-    loss = criterion(p, aidx)
-  File "/home/qzhb/anaconda3/lib/python3.7/site-packages/torch/nn/modules/module.py", line 550, in __call__
-    result = self.forward(*input, **kwargs)
-  File "/home/qzhb/anaconda3/lib/python3.7/site-packages/torch/nn/modules/loss.py", line 516, in forward
-    return F.binary_cross_entropy(input, target, weight=self.weight, reduction=self.reduction)
-  File "/home/qzhb/anaconda3/lib/python3.7/site-packages/torch/nn/functional.py", line 2372, in binary_cross_entropy
-    "!= input nelement ({})".format(target.numel(), input.numel()))
-ValueError: Target and input must have the same number of elements. target nelement (128) != input nelement (24064)
-Error processing line 1 of /home/qzhb/anaconda3/lib/python3.7/site-packages/movienet-tools-nspkg.pth:
-
-  Traceback (most recent call last):
-    File "/home/qzhb/anaconda3/lib/python3.7/site.py", line 168, in addpackage
-      exec(line)
-    File "<string>", line 1, in <module>
-    File "<frozen importlib._bootstrap>", line 580, in module_from_spec
-  AttributeError: 'NoneType' object has no attribute 'loader'
-
-Remainder of file ignored
-loading dictionary from data/dictionary_TDIUC.pkl
-Namespace(buffer_replacement_strategy='random', config_name='TDIUC_streaming', data_order=None, expt_name='TDIUC_streaming_qtype_2e-3', full=False, icarl=False, lr=0.002, max_buffer_size=None, network='mcan', offline=True, rehearsal_mode=None, remind_compressed_features=False, remind_features=False, remind_original_data=False, sampling_method='random', stream=False)
-Building Dataloaders !
-Loading Train Data !
-Filtering Train Data !
-Loading Test Data
-Filtering Test Data
-main.py:528: YAMLLoadWarning: calling yaml.load() without Loader=... is deprecated, as the default Loader is unsafe. Please read https://msg.pyyaml.org/load for full details.
-  yaml_dict = yaml.load(f)
-Net(
-  (embedding): Embedding(9318, 300)
-  (lstm): LSTM(300, 512, batch_first=True)
-  (img_feat_linear): Linear(in_features=2048, out_features=512, bias=True)
-  (backbone): MCA_ED(
-    (enc_list): ModuleList(
-      (0): SA(
-        (mhatt): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (ffn): FFN(
-          (mlp): MLP(
-            (fc): FC(
-              (linear): Linear(in_features=512, out_features=2048, bias=True)
-              (relu): ReLU(inplace=True)
-              (dropout): Dropout(p=0.1, inplace=False)
-            )
-            (linear): Linear(in_features=2048, out_features=512, bias=True)
-          )
-        )
-        (dropout1): Dropout(p=0.1, inplace=False)
-        (norm1): LayerNorm()
-        (dropout2): Dropout(p=0.1, inplace=False)
-        (norm2): LayerNorm()
-      )
-      (1): SA(
-        (mhatt): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (ffn): FFN(
-          (mlp): MLP(
-            (fc): FC(
-              (linear): Linear(in_features=512, out_features=2048, bias=True)
-              (relu): ReLU(inplace=True)
-              (dropout): Dropout(p=0.1, inplace=False)
-            )
-            (linear): Linear(in_features=2048, out_features=512, bias=True)
-          )
-        )
-        (dropout1): Dropout(p=0.1, inplace=False)
-        (norm1): LayerNorm()
-        (dropout2): Dropout(p=0.1, inplace=False)
-        (norm2): LayerNorm()
-      )
-      (2): SA(
-        (mhatt): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (ffn): FFN(
-          (mlp): MLP(
-            (fc): FC(
-              (linear): Linear(in_features=512, out_features=2048, bias=True)
-              (relu): ReLU(inplace=True)
-              (dropout): Dropout(p=0.1, inplace=False)
-            )
-            (linear): Linear(in_features=2048, out_features=512, bias=True)
-          )
-        )
-        (dropout1): Dropout(p=0.1, inplace=False)
-        (norm1): LayerNorm()
-        (dropout2): Dropout(p=0.1, inplace=False)
-        (norm2): LayerNorm()
-      )
-      (3): SA(
-        (mhatt): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (ffn): FFN(
-          (mlp): MLP(
-            (fc): FC(
-              (linear): Linear(in_features=512, out_features=2048, bias=True)
-              (relu): ReLU(inplace=True)
-              (dropout): Dropout(p=0.1, inplace=False)
-            )
-            (linear): Linear(in_features=2048, out_features=512, bias=True)
-          )
-        )
-        (dropout1): Dropout(p=0.1, inplace=False)
-        (norm1): LayerNorm()
-        (dropout2): Dropout(p=0.1, inplace=False)
-        (norm2): LayerNorm()
-      )
-      (4): SA(
-        (mhatt): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (ffn): FFN(
-          (mlp): MLP(
-            (fc): FC(
-              (linear): Linear(in_features=512, out_features=2048, bias=True)
-              (relu): ReLU(inplace=True)
-              (dropout): Dropout(p=0.1, inplace=False)
-            )
-            (linear): Linear(in_features=2048, out_features=512, bias=True)
-          )
-        )
-        (dropout1): Dropout(p=0.1, inplace=False)
-        (norm1): LayerNorm()
-        (dropout2): Dropout(p=0.1, inplace=False)
-        (norm2): LayerNorm()
-      )
-      (5): SA(
-        (mhatt): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (ffn): FFN(
-          (mlp): MLP(
-            (fc): FC(
-              (linear): Linear(in_features=512, out_features=2048, bias=True)
-              (relu): ReLU(inplace=True)
-              (dropout): Dropout(p=0.1, inplace=False)
-            )
-            (linear): Linear(in_features=2048, out_features=512, bias=True)
-          )
-        )
-        (dropout1): Dropout(p=0.1, inplace=False)
-        (norm1): LayerNorm()
-        (dropout2): Dropout(p=0.1, inplace=False)
-        (norm2): LayerNorm()
-      )
-    )
-    (dec_list): ModuleList(
-      (0): SGA(
-        (mhatt1): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (mhatt2): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (ffn): FFN(
-          (mlp): MLP(
-            (fc): FC(
-              (linear): Linear(in_features=512, out_features=2048, bias=True)
-              (relu): ReLU(inplace=True)
-              (dropout): Dropout(p=0.1, inplace=False)
-            )
-            (linear): Linear(in_features=2048, out_features=512, bias=True)
-          )
-        )
-        (dropout1): Dropout(p=0.1, inplace=False)
-        (norm1): LayerNorm()
-        (dropout2): Dropout(p=0.1, inplace=False)
-        (norm2): LayerNorm()
-        (dropout3): Dropout(p=0.1, inplace=False)
-        (norm3): LayerNorm()
-      )
-      (1): SGA(
-        (mhatt1): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (mhatt2): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (ffn): FFN(
-          (mlp): MLP(
-            (fc): FC(
-              (linear): Linear(in_features=512, out_features=2048, bias=True)
-              (relu): ReLU(inplace=True)
-              (dropout): Dropout(p=0.1, inplace=False)
-            )
-            (linear): Linear(in_features=2048, out_features=512, bias=True)
-          )
-        )
-        (dropout1): Dropout(p=0.1, inplace=False)
-        (norm1): LayerNorm()
-        (dropout2): Dropout(p=0.1, inplace=False)
-        (norm2): LayerNorm()
-        (dropout3): Dropout(p=0.1, inplace=False)
-        (norm3): LayerNorm()
-      )
-      (2): SGA(
-        (mhatt1): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (mhatt2): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (ffn): FFN(
-          (mlp): MLP(
-            (fc): FC(
-              (linear): Linear(in_features=512, out_features=2048, bias=True)
-              (relu): ReLU(inplace=True)
-              (dropout): Dropout(p=0.1, inplace=False)
-            )
-            (linear): Linear(in_features=2048, out_features=512, bias=True)
-          )
-        )
-        (dropout1): Dropout(p=0.1, inplace=False)
-        (norm1): LayerNorm()
-        (dropout2): Dropout(p=0.1, inplace=False)
-        (norm2): LayerNorm()
-        (dropout3): Dropout(p=0.1, inplace=False)
-        (norm3): LayerNorm()
-      )
-      (3): SGA(
-        (mhatt1): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (mhatt2): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (ffn): FFN(
-          (mlp): MLP(
-            (fc): FC(
-              (linear): Linear(in_features=512, out_features=2048, bias=True)
-              (relu): ReLU(inplace=True)
-              (dropout): Dropout(p=0.1, inplace=False)
-            )
-            (linear): Linear(in_features=2048, out_features=512, bias=True)
-          )
-        )
-        (dropout1): Dropout(p=0.1, inplace=False)
-        (norm1): LayerNorm()
-        (dropout2): Dropout(p=0.1, inplace=False)
-        (norm2): LayerNorm()
-        (dropout3): Dropout(p=0.1, inplace=False)
-        (norm3): LayerNorm()
-      )
-      (4): SGA(
-        (mhatt1): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (mhatt2): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (ffn): FFN(
-          (mlp): MLP(
-            (fc): FC(
-              (linear): Linear(in_features=512, out_features=2048, bias=True)
-              (relu): ReLU(inplace=True)
-              (dropout): Dropout(p=0.1, inplace=False)
-            )
-            (linear): Linear(in_features=2048, out_features=512, bias=True)
-          )
-        )
-        (dropout1): Dropout(p=0.1, inplace=False)
-        (norm1): LayerNorm()
-        (dropout2): Dropout(p=0.1, inplace=False)
-        (norm2): LayerNorm()
-        (dropout3): Dropout(p=0.1, inplace=False)
-        (norm3): LayerNorm()
-      )
-      (5): SGA(
-        (mhatt1): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (mhatt2): MHAtt(
-          (linear_v): Linear(in_features=512, out_features=512, bias=True)
-          (linear_k): Linear(in_features=512, out_features=512, bias=True)
-          (linear_q): Linear(in_features=512, out_features=512, bias=True)
-          (linear_merge): Linear(in_features=512, out_features=512, bias=True)
-          (dropout): Dropout(p=0.1, inplace=False)
-        )
-        (ffn): FFN(
-          (mlp): MLP(
-            (fc): FC(
-              (linear): Linear(in_features=512, out_features=2048, bias=True)
-              (relu): ReLU(inplace=True)
-              (dropout): Dropout(p=0.1, inplace=False)
-            )
-            (linear): Linear(in_features=2048, out_features=512, bias=True)
-          )
-        )
-        (dropout1): Dropout(p=0.1, inplace=False)
-        (norm1): LayerNorm()
-        (dropout2): Dropout(p=0.1, inplace=False)
-        (norm2): LayerNorm()
-        (dropout3): Dropout(p=0.1, inplace=False)
-        (norm3): LayerNorm()
-      )
-    )
-  )
-  (attflat_img): AttFlat(
-    (mlp): MLP(
-      (fc): FC(
-        (linear): Linear(in_features=512, out_features=512, bias=True)
-        (relu): ReLU(inplace=True)
-        (dropout): Dropout(p=0.1, inplace=False)
-      )
-      (linear): Linear(in_features=512, out_features=1, bias=True)
-    )
-    (linear_merge): Linear(in_features=512, out_features=1024, bias=True)
-  )
-  (attflat_lang): AttFlat(
-    (mlp): MLP(
-      (fc): FC(
-        (linear): Linear(in_features=512, out_features=512, bias=True)
-        (relu): ReLU(inplace=True)
-        (dropout): Dropout(p=0.1, inplace=False)
-      )
-      (linear): Linear(in_features=512, out_features=1, bias=True)
-    )
-    (linear_merge): Linear(in_features=512, out_features=1024, bias=True)
-  )
-  (proj_norm): LayerNorm()
-  (proj): Linear(in_features=1024, out_features=188, bias=True)
-)
-Using lr specified in args 0.002
-{
-    "buffer_replacement_strategy": "random",
-    "config_name": "TDIUC_streaming",
-    "data_order": null,
-    "expt_name": "TDIUC_streaming_qtype_2e-3",
-    "full": false,
-    "icarl": false,
-    "lr": 0.002,
-    "max_buffer_size": null,
-    "network": "mcan",
-    "offline": true,
-    "rehearsal_mode": null,
-    "remind_compressed_features": false,
-    "remind_features": false,
-    "remind_original_data": false,
-    "sampling_method": "random",
-    "stream": false
-}
-TRAINING
-CURRENT TIME ====== Fri May 14 21:11:34 2021
-p torch.Size([128, 188])
-ans torch.Size([128])
-/home/qzhb/anaconda3/lib/python3.7/site-packages/torch/nn/modules/loss.py:516: UserWarning: Using a target size (torch.Size([128])) that is different to the input size (torch.Size([128, 188])) is deprecated. Please ensure they have the same size.
-  return F.binary_cross_entropy(input, target, weight=self.weight, reduction=self.reduction)
-Traceback (most recent call last):
-  File "main.py", line 574, in <module>
-    main()
-  File "main.py", line 563, in main
-    training_loop(config, net, train_data, val_data, optimizer, criterion, config.expt_dir, net_running, start_epoch)
-  File "main.py", line 166, in training_loop
-    acc, vqa_acc = train_epoch(net, criterion, optimizer, train_data, epoch, __C=__C)
-  File "main.py", line 119, in train_epoch
-    loss = criterion(p, aidx)
-  File "/home/qzhb/anaconda3/lib/python3.7/site-packages/torch/nn/modules/module.py", line 550, in __call__
-    result = self.forward(*input, **kwargs)
-  File "/home/qzhb/anaconda3/lib/python3.7/site-packages/torch/nn/modules/loss.py", line 516, in forward
-    return F.binary_cross_entropy(input, target, weight=self.weight, reduction=self.reduction)
-  File "/home/qzhb/anaconda3/lib/python3.7/site-packages/torch/nn/functional.py", line 2372, in binary_cross_entropy
-    "!= input nelement ({})".format(target.numel(), input.numel()))
-ValueError: Target and input must have the same number of elements. target nelement (128) != input nelement (24064)
+CURRENT TIME ====== Sun May 16 14:53:05 2021
+Processed 128 of 100000, Loss:0.0000, Accuracy:0.0000Processed 256 of 100000, Loss:0.0000, Accuracy:0.0000Processed 384 of 100000, Loss:0.0000, Accuracy:0.0000Processed 512 of 100000, Loss:0.0000, Accuracy:0.0000Processed 640 of 100000, Loss:0.0000, Accuracy:0.0000Processed 768 of 100000, Loss:0.0000, Accuracy:0.0000Processed 896 of 100000, Loss:0.0000, Accuracy:0.0000Processed 1024 of 100000, Loss:0.0000, Accuracy:0.0000Processed 1152 of 100000, Loss:0.0000, Accuracy:0.0000Processed 1280 of 100000, Loss:0.0000, Accuracy:0.0000Processed 1408 of 100000, Loss:0.0000, Accuracy:0.0000Processed 1536 of 100000, Loss:0.0000, Accuracy:0.0000Processed 1664 of 100000, Loss:0.0000, Accuracy:0.0000Processed 1792 of 100000, Loss:0.0000, Accuracy:0.0000Processed 1920 of 100000, Loss:0.0000, Accuracy:0.0000Processed 2048 of 100000, Loss:0.0000, Accuracy:0.0000Processed 2176 of 100000, Loss:0.0000, Accuracy:0.0000Processed 2304 of 100000, Loss:0.0000, Accuracy:0.0000Processed 2432 of 100000, Loss:0.0000, Accuracy:0.0000Processed 2560 of 100000, Loss:0.0000, Accuracy:0.0000Processed 2688 of 100000, Loss:0.0000, Accuracy:0.0000Processed 2816 of 100000, Loss:0.0000, Accuracy:0.0000Processed 2944 of 100000, Loss:0.0000, Accuracy:0.0000Processed 3072 of 100000, Loss:0.0000, Accuracy:0.0000Processed 3200 of 100000, Loss:0.0000, Accuracy:0.0000Processed 3328 of 100000, Loss:0.0000, Accuracy:0.0000Processed 3456 of 100000, Loss:0.0000, Accuracy:0.0000Processed 3584 of 100000, Loss:0.0000, Accuracy:0.0000Processed 3712 of 100000, Loss:0.0000, Accuracy:0.0000Processed 3840 of 100000, Loss:0.0000, Accuracy:0.0000Processed 3968 of 100000, Loss:0.0000, Accuracy:0.0000Processed 4096 of 100000, Loss:0.0000, Accuracy:0.0000Processed 4224 of 100000, Loss:0.0000, Accuracy:0.0000Processed 4352 of 100000, Loss:0.0000, Accuracy:0.0000Processed 4480 of 100000, Loss:0.0000, Accuracy:0.0000Processed 4608 of 100000, Loss:0.0000, Accuracy:0.0000Processed 4736 of 100000, Loss:0.0000, Accuracy:0.0000Processed 4864 of 100000, Loss:0.0000, Accuracy:0.0000Processed 4992 of 100000, Loss:0.0000, Accuracy:0.0000Processed 5120 of 100000, Loss:0.0000, Accuracy:0.0000Processed 5248 of 100000, Loss:0.0000, Accuracy:0.0000Processed 5376 of 100000, Loss:0.0000, Accuracy:0.0000Processed 5504 of 100000, Loss:0.0000, Accuracy:0.0000Processed 5632 of 100000, Loss:0.0000, Accuracy:0.0000Processed 5760 of 100000, Loss:0.0000, Accuracy:0.0000Processed 5888 of 100000, Loss:0.0000, Accuracy:0.0000Processed 6016 of 100000, Loss:0.0000, Accuracy:0.0000Processed 6144 of 100000, Loss:0.0000, Accuracy:0.0000Processed 6272 of 100000, Loss:0.0000, Accuracy:0.0000Processed 6400 of 100000, Loss:0.0000, Accuracy:0.0000Processed 6528 of 100000, Loss:0.0000, Accuracy:0.0000Processed 6656 of 100000, Loss:0.0000, Accuracy:0.0000Processed 6784 of 100000, Loss:0.0000, Accuracy:0.0000Processed 6912 of 100000, Loss:0.0000, Accuracy:0.0000Processed 7040 of 100000, Loss:0.0000, Accuracy:0.0000Processed 7168 of 100000, Loss:0.0000, Accuracy:0.0000Processed 7296 of 100000, Loss:0.0000, Accuracy:0.0000Processed 7424 of 100000, Loss:0.0000, Accuracy:0.0000Processed 7552 of 100000, Loss:0.0000, Accuracy:0.0000Processed 7680 of 100000, Loss:0.0000, Accuracy:0.0000Processed 7808 of 100000, Loss:0.0000, Accuracy:0.0000Processed 7936 of 100000, Loss:0.0000, Accuracy:0.0000Processed 8064 of 100000, Loss:0.0000, Accuracy:0.0000Processed 8192 of 100000, Loss:0.0000, Accuracy:0.0000Processed 8320 of 100000, Loss:0.0000, Accuracy:0.0000Processed 8448 of 100000, Loss:0.0000, Accuracy:0.0000Processed 8576 of 100000, Loss:0.0000, Accuracy:0.0000Processed 8704 of 100000, Loss:0.0000, Accuracy:0.0000Processed 8832 of 100000, Loss:0.0000, Accuracy:0.0000Processed 8960 of 100000, Loss:0.0000, Accuracy:0.0000Processed 9088 of 100000, Loss:0.0000, Accuracy:0.0000Processed 9216 of 100000, Loss:0.0000, Accuracy:0.0000Processed 9344 of 100000, Loss:0.0000, Accuracy:0.0000Processed 9472 of 100000, Loss:0.0000, Accuracy:0.0000Processed 9600 of 100000, Loss:0.0000, Accuracy:0.0000Processed 9728 of 100000, Loss:0.0000, Accuracy:0.0000Processed 9856 of 100000, Loss:0.0000, Accuracy:0.0000Processed 9984 of 100000, Loss:0.0000, Accuracy:0.0000Processed 10112 of 100000, Loss:0.0000, Accuracy:0.0000Processed 10240 of 100000, Loss:0.0000, Accuracy:0.0000Processed 10368 of 100000, Loss:0.0000, Accuracy:0.0000Processed 10496 of 100000, Loss:0.0000, Accuracy:0.0000Processed 10624 of 100000, Loss:0.0000, Accuracy:0.0000Processed 10752 of 100000, Loss:0.0000, Accuracy:0.0000Processed 10880 of 100000, Loss:0.0000, Accuracy:0.0000Processed 11008 of 100000, Loss:0.0000, Accuracy:0.0000Processed 11136 of 100000, Loss:0.0000, Accuracy:0.0000Processed 11264 of 100000, Loss:0.0000, Accuracy:0.0000Processed 11392 of 100000, Loss:0.0000, Accuracy:0.0000Processed 11520 of 100000, Loss:0.0000, Accuracy:0.0000Processed 11648 of 100000, Loss:0.0000, Accuracy:0.0000Processed 11776 of 100000, Loss:0.0000, Accuracy:0.0000Processed 11904 of 100000, Loss:0.0000, Accuracy:0.0000Processed 12032 of 100000, Loss:0.0000, Accuracy:0.0000Processed 12160 of 100000, Loss:0.0000, Accuracy:0.0000Processed 12288 of 100000, Loss:0.0000, Accuracy:0.0000Processed 12416 of 100000, Loss:0.0000, Accuracy:0.0000Processed 12544 of 100000, Loss:0.0000, Accuracy:0.0000Processed 12672 of 100000, Loss:0.0000, Accuracy:0.0000Processed 12800 of 100000, Loss:0.0000, Accuracy:0.0000Processed 12928 of 100000, Loss:0.0000, Accuracy:0.0000Processed 13056 of 100000, Loss:0.0000, Accuracy:0.0000Processed 13184 of 100000, Loss:0.0000, Accuracy:0.0000Processed 13312 of 100000, Loss:0.0000, Accuracy:0.0000Processed 13440 of 100000, Loss:0.0000, Accuracy:0.0000Processed 13568 of 100000, Loss:0.0000, Accuracy:0.0000Processed 13696 of 100000, Loss:0.0000, Accuracy:0.0000Processed 13824 of 100000, Loss:0.0000, Accuracy:0.0000Processed 13952 of 100000, Loss:0.0000, Accuracy:0.0000Processed 14080 of 100000, Loss:0.0000, Accuracy:0.0000Processed 14208 of 100000, Loss:0.0000, Accuracy:0.0000Processed 14336 of 100000, Loss:0.0000, Accuracy:0.0000Processed 14464 of 100000, Loss:0.0000, Accuracy:0.0000Processed 14592 of 100000, Loss:0.0000, Accuracy:0.0000Processed 14720 of 100000, Loss:0.0000, Accuracy:0.0000Processed 14848 of 100000, Loss:0.0000, Accuracy:0.0000Traceback (most recent call last):
+  File "/home/qzhb/anaconda3/lib/python3.7/multiprocessing/resource_sharer.py", line 142, in _serve
+    with self._listener.accept() as conn:
+  File "/home/qzhb/anaconda3/lib/python3.7/multiprocessing/connection.py", line 456, in accept
+    answer_challenge(c, self._authkey)
+  File "/home/qzhb/anaconda3/lib/python3.7/multiprocessing/connection.py", line 741, in answer_challenge
+    message = connection.recv_bytes(256)         # reject large message
+  File "/home/qzhb/anaconda3/lib/python3.7/multiprocessing/connection.py", line 216, in recv_bytes
+    buf = self._recv_bytes(maxlength)
+  File "/home/qzhb/anaconda3/lib/python3.7/multiprocessing/connection.py", line 407, in _recv_bytes
+    buf = self._recv(4)
+  File "/home/qzhb/anaconda3/lib/python3.7/multiprocessing/connection.py", line 383, in _recv
+    raise EOFError
+EOFError
