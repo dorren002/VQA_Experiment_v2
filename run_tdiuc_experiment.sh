@@ -13,8 +13,10 @@ NETWORK=mcan
 CUDA_VISIBLE_DEVICES=0 nohup python -u main.py \
 --config_name ${CONFIG} \
 --expt_name ${expt} \
---offline \
---network ${NETWORK} \
+--remind_features \
+--icarl \
+--rehearsal_mode ${MODE} \
+--max_buffer_size ${BUFFERSIZE} \
 --lr ${lr} &> ../logs/${expt}.log &
 
 #DATA_ORDER=qtype # or qtype

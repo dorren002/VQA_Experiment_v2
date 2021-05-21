@@ -345,6 +345,8 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
     net.train()
     iter_cnt, index = 0,0
     boundaries = get_boundaries(data, config)
+    if args.icarl:
+        rehearsal_dataset = build_icarl_rehearsal_dataloaders(config, [])
 
     for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, cnum, mfeat in data:
         net.train()
@@ -426,7 +428,7 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
 
 
 
-        elif args.remind_features or args.remind_compressed_features:
+        elif not args.icarl and  args.remind_features or args.remind_compressed_features:
             net.train()
             # 初始化索引
             if iter_cnt == 0:
@@ -481,8 +483,7 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
                 index += 1
             inline_print('Processed {0} of {1}'.format(iter_cnt, len(data) * data.batch_size))
         elif args.icarl:
-            net.train()
-            rehearsal_dataset = build_icarl_rehearsal_dataloaders(config, [])
+            net.train() 
             rehearsal_ixs = []
 
             rehearsal_data = build_rehearsal_dataloader_with_limited_buffer(rehearsal_dataset,
