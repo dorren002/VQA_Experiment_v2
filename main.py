@@ -347,6 +347,7 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
     boundaries = get_boundaries(data, config)
     if args.icarl:
         rehearsal_dataset = build_icarl_rehearsal_dataloaders(config, [])
+        curclas = 0
 
     for ixs, qfeat, qseq, imfeat, qid, iid, aidx, ten_aidx, qlen, cnum, mfeat in data:
         net.train()
@@ -506,8 +507,9 @@ def stream(net, data, test_data, optimizer, criterion, config, net_running):
                     index += 1
                     continue
                 if index in boundaries:
-                    for i in range(index):
-                        rehearsal_data.batch_sampler.update_buffer(i, iter_cnt)
+                    for i in range(2000*curclas,(2000*curclas+1)):
+                        rehearsal_data.batch_sampler.update_buffer(i, 0)
+                    curclas+=1
 
                 rehearsal_data_iter = iter(rehearsal_data)
 
